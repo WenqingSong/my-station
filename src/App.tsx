@@ -120,38 +120,41 @@ function Opening({ reduced, onComplete }: OpeningProps) {
         const sequence = gsap.timeline({ defaults: { ease: 'power3.out' }, onComplete: finish });
         timeline.current = sequence;
         sequence
-          .from('.opening-meta > *', { y: 14, opacity: 0, duration: .42, stagger: .06 })
-          .from('.opening-axis', { scaleX: 0, transformOrigin: 'center', duration: .48 }, '-=.24');
+          .from('.opening-meta > *', { y: 14, opacity: 0, duration: .3, stagger: .04 })
+          .from('.opening-axis', { scaleX: 0, transformOrigin: 'center', duration: .34 }, '-=.2');
 
         greetings.forEach((_, index) => {
           const greeting = `.opening-greeting[data-index="${index}"]`;
           const tick = `.opening-trace span:nth-child(${index + 1})`;
+          const enter = index === 0 ? .06 : index === greetings.length - 1 ? .05 : .035;
+          const hold = index === 0 ? .04 : index === greetings.length - 1 ? .05 : .02;
+          const leave = index === 0 ? .05 : index === greetings.length - 1 ? .045 : .04;
           sequence
             .set(greeting, { visibility: 'visible' })
             .fromTo(greeting,
               { clipPath: 'inset(0 100% 0 0)', scaleX: .58, xPercent: -3, transformOrigin: '50% 50%' },
-              { clipPath: 'inset(0 0% 0 0)', scaleX: 1.07, xPercent: 0, duration: .095, ease: 'power2.out' })
-            .to(greeting, { scaleX: .92, letterSpacing: '-.045em', duration: .055, ease: 'sine.inOut' })
-            .to(tick, { scaleX: 1, opacity: 1, duration: .08, ease: 'power2.out' }, '<')
-            .to(greeting, { clipPath: 'inset(0 0 0 100%)', xPercent: 3, duration: .075, ease: 'power2.in' })
+              { clipPath: 'inset(0 0% 0 0)', scaleX: 1.07, xPercent: 0, duration: enter, ease: 'power2.out' })
+            .to(greeting, { scaleX: .92, letterSpacing: '-.045em', duration: hold, ease: 'sine.inOut' })
+            .to(tick, { scaleX: 1, opacity: 1, duration: hold, ease: 'power2.out' }, '<')
+            .to(greeting, { clipPath: 'inset(0 0 0 100%)', xPercent: 3, duration: leave, ease: 'power2.in' })
             .set(greeting, { visibility: 'hidden' });
         });
 
         sequence
-          .to('.opening-trace span', { scaleX: 0, transformOrigin: 'center', duration: .24, stagger: { each: .015, from: 'edges' }, ease: 'power3.in' })
-          .to('.opening-axis', { scaleX: .08, backgroundColor: '#3047ff', duration: .28, ease: 'power3.inOut' }, '<+.03')
+          .to('.opening-trace span', { scaleX: 0, transformOrigin: 'center', duration: .14, stagger: { each: .006, from: 'edges' }, ease: 'power3.in' })
+          .to('.opening-axis', { scaleX: .08, backgroundColor: '#3047ff', duration: .2, ease: 'power3.inOut' }, '<+.02')
           .set('.opening-final', { visibility: 'visible' })
           .fromTo('.opening-final',
             { clipPath: 'inset(0 100% 0 0)', scaleX: .72, transformOrigin: '50% 50%' },
-            { clipPath: 'inset(0 0% 0 0)', scaleX: 1, duration: .58, ease: 'power4.out' })
-          .from('.opening-final-dot', { scale: 0, rotate: -120, duration: .46, ease: 'back.out(2.4)' }, '-=.34')
-          .to('.opening-meta, .opening-trace, .opening-final-name', { opacity: 0, y: -14, duration: .36, ease: 'power2.in' }, '+=.34')
-          .to('.opening-final-dot', { x: () => innerWidth * .105, y: () => innerHeight * .055, scale: .6, duration: .52, ease: 'power3.inOut' }, '-=.28')
+            { clipPath: 'inset(0 0% 0 0)', scaleX: 1, duration: .48, ease: 'power4.out' })
+          .from('.opening-final-dot', { scale: 0, rotate: -120, duration: .4, ease: 'back.out(2.4)' }, '-=.3')
+          .to('.opening-meta, .opening-trace, .opening-final-name', { opacity: 0, y: -14, duration: .28, ease: 'power2.in' }, '+=.18')
+          .to('.opening-final-dot', { x: () => innerWidth * .105, y: () => innerHeight * .055, scale: .6, duration: .44, ease: 'power3.inOut' }, '-=.24')
           .addLabel('curtain', '-=.05')
-          .to('.opening-panel-top', { yPercent: -101, duration: 1.05, ease: 'power4.inOut' }, 'curtain')
-          .to('.opening-panel-bottom', { yPercent: 101, duration: 1.05, ease: 'power4.inOut' }, 'curtain')
-          .to('.opening-final-dot', { opacity: 0, scale: .2, duration: .3, ease: 'power2.in' }, 'curtain+=.48')
-          .to(heroTargets, { opacity: 1, y: 0, duration: .82, stagger: .055, ease: 'power3.out' }, 'curtain+=.2');
+          .to('.opening-panel-top', { yPercent: -101, duration: .78, ease: 'power4.inOut' }, 'curtain')
+          .to('.opening-panel-bottom', { yPercent: 101, duration: .78, ease: 'power4.inOut' }, 'curtain')
+          .to('.opening-final-dot', { opacity: 0, scale: .2, duration: .24, ease: 'power2.in' }, 'curtain+=.34')
+          .to(heroTargets, { opacity: 1, y: 0, duration: .58, stagger: .028, ease: 'power3.out' }, 'curtain+=.12');
       }, rootRef);
     };
     document.fonts.ready.then(begin);
