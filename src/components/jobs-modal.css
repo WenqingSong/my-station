@@ -1,0 +1,16 @@
+html.jobs-modal-open,html.jobs-modal-open body{overflow:hidden}
+.jobs-modal-overlay{position:fixed;inset:0;z-index:160;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(233,233,229,.38);backdrop-filter:blur(18px) saturate(1.15);-webkit-backdrop-filter:blur(18px) saturate(1.15)}
+.jobs-modal{width:100%;max-width:600px;background:var(--white);color:var(--ink);border:1px solid rgba(25,26,30,.14);border-radius:clamp(22px,3vw,36px);padding:clamp(32px,4.5vw,52px);box-shadow:0 24px 70px rgba(25,26,30,.18)}
+.jobs-modal-eyebrow{margin:0 0 22px;font-size:12px;line-height:1.4;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.jobs-modal-title{margin:0 0 18px;font-size:clamp(30px,4vw,44px);font-weight:500;line-height:1.05;letter-spacing:-.035em}
+.jobs-modal-desc{margin:0;font-size:clamp(16px,1.2vw,18px);line-height:1.7;color:#555651}
+.jobs-modal-actions{display:flex;gap:14px;margin-top:38px}
+.jobs-modal-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:14px 22px;border-radius:999px;font-size:15px;line-height:1;letter-spacing:.01em;transition:background var(--duration-fast) var(--ease-out),color var(--duration-fast) var(--ease-out),border-color var(--duration-fast) var(--ease-out),scale .18s var(--ease-out)}
+.jobs-modal-btn.secondary{border:1px solid var(--ink);background:transparent;color:var(--ink)}
+.jobs-modal-btn.secondary:hover{background:var(--ink);color:var(--white)}
+.jobs-modal-btn.primary{border:1px solid var(--blue);background:var(--blue);color:#fff}
+.jobs-modal-btn.primary:hover{background:#2034da;border-color:#2034da}
+.jobs-modal-btn:active{scale:.97}
+.jobs-modal-btn:focus-visible{outline:2px solid var(--blue);outline-offset:5px}
+@media(max-width:620px){.jobs-modal-overlay{padding:16px}.jobs-modal{width:calc(100vw - 32px);padding:26px 22px 24px}.jobs-modal-title{font-size:28px}.jobs-modal-actions{flex-direction:column;gap:10px;margin-top:30px}.jobs-modal-btn{width:100%;min-height:50px}}
+@media(prefers-reduced-motion:reduce){.jobs-modal-btn{transition:none!important}}

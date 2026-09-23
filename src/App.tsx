@@ -6,6 +6,7 @@ import ScrollFloat from './components/ScrollFloat';
 import SelectedWork from './components/SelectedWork';
 import AboutEditorial from './components/AboutEditorial';
 import SiteDetails from './components/SiteDetails';
+import JobsModal from './components/JobsModal';
 import { useCompactMotion, useMotionInfrastructure } from './motion';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -66,8 +67,6 @@ const greetings = [
   { text: 'Sawubona', locale: 'zu', label: 'isiZulu' }
 ];
 
-const openingStorageKey = 'arthur-opening-v2-seen';
-
 function useReducedMotion() {
   const [reduced, setReduced] = useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
   useEffect(() => {
@@ -79,17 +78,22 @@ function useReducedMotion() {
   return reduced;
 }
 
-function Opening({ reduced }: { reduced: boolean }) {
-  const [visible, setVisible] = useState(() => !reduced && localStorage.getItem(openingStorageKey) !== '1');
+type OpeningProps = {
+  reduced: boolean;
+  onComplete?: () => void;
+};
+
+function Opening({ reduced, onComplete }: OpeningProps) {
+  const [visible, setVisible] = useState(true);
   const rootRef = useRef<HTMLDivElement>(null);
   const timeline = useRef<gsap.core.Timeline | null>(null);
 
   const finish = useCallback(() => {
-    localStorage.setItem(openingStorageKey, '1');
     document.documentElement.classList.remove('intro-locked');
     gsap.set(document.querySelectorAll('.hero-opening-target'), { clearProps: 'transform,opacity' });
     setVisible(false);
-  }, []);
+    onComplete?.();
+  }, [onComplete]);
 
   const skip = useCallback(() => {
     timeline.current?.kill();
@@ -360,6 +364,16 @@ function App() {
   const disabled = reduced || motionPaused;
   const complexMotionDisabled = disabled || compact;
 
+  const [showJobsModal, setShowJobsModal] = useState(false);
+
+  const handleOpeningComplete = useCallback(() => {
+    if (window.location.pathname.replace(/\/+$/, '') === '/jobs') {
+      setShowJobsModal(true);
+    }
+  }, []);
+
+  const closeJobsModal = useCallback(() => setShowJobsModal(false), []);
+
   useMotionInfrastructure({ disabled, compact });
 
   useEffect(() => setMotionPaused(reduced), [reduced]);
@@ -376,7 +390,7 @@ function App() {
 
   return (
     <>
-      <Opening reduced={reduced} />
+      <Opening reduced={reduced} onComplete={handleOpeningComplete} />
       <a className="skip-link" href="#work">跳至项目</a>
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Arthur，返回首页"><span>©</span> Arthur</a>
@@ -432,6 +446,7 @@ function App() {
           </div>
         </section>
       </main>
+      {showJobsModal && <JobsModal onClose={closeJobsModal} />}
     </>
   );
 }
