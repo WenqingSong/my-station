@@ -40,6 +40,7 @@ export default function AboutEditorial({ disabled, compact }: { disabled: boolea
 
       <figure className="about-portrait">
         <picture className="portrait-window">
+          <source type="image/webp" srcSet="/arthur-editorial-640.webp 640w, /arthur-editorial-960.webp 960w, /arthur-editorial-1440.webp 1440w, /arthur-editorial-2160.webp 2160w" sizes="(max-width: 620px) 72vw, (max-width: 900px) 42vw, (min-width: 1600px) 440px, 32vw" />
           <img src="/arthur-editorial-960.jpg"
             srcSet="/arthur-editorial-640.jpg 640w, /arthur-editorial-960.jpg 960w, /arthur-editorial-1440.jpg 1440w, /arthur-editorial-2160.jpg 2160w"
             sizes="(max-width: 620px) 72vw, (max-width: 900px) 42vw, (min-width: 1600px) 440px, 32vw"

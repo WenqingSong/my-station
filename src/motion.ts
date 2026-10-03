@@ -37,6 +37,20 @@ type MotionInfrastructureOptions = {
   compact: boolean;
 };
 
+// Sticky rectangles describe the currently pinned position, not the anchor's
+// original place in the document. Resolve scenes from their flow siblings.
+function anchorTop(target: HTMLElement) {
+  if (target.matches('.work-scene') && target.parentElement) {
+    let top = scrollY + target.parentElement.getBoundingClientRect().top;
+    for (const sibling of Array.from(target.parentElement.children)) {
+      if (sibling === target) break;
+      top += (sibling as HTMLElement).offsetHeight + parseFloat(getComputedStyle(sibling).marginBottom || '0');
+    }
+    return top;
+  }
+  return scrollY + target.getBoundingClientRect().top;
+}
+
 export function useMotionInfrastructure({ disabled, compact }: MotionInfrastructureOptions) {
   useEffect(() => {
     gsap.defaults({ duration: MOTION.duration.standard, ease: MOTION.ease.standard });
@@ -56,6 +70,17 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
     });
     const update = (time: number) => lenis?.raf(time * 1000);
     const unsubscribe = lenis?.on('scroll', ScrollTrigger.update);
+    let locked = false;
+    const syncLock = () => {
+      const next = document.hidden || document.documentElement.classList.contains('intro-locked') || document.documentElement.classList.contains('jobs-modal-open');
+      if (next === locked) return;
+      locked = next;
+      if (locked) lenis?.stop(); else lenis?.start();
+    };
+    const lockObserver = new MutationObserver(syncLock);
+    lockObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    document.addEventListener('visibilitychange', syncLock);
+    syncLock();
 
     // Native links stay functional without JS; enhanced navigation respects motion preferences.
     const navigate = (event: MouseEvent) => {
@@ -70,16 +95,52 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       target.setAttribute('tabindex', '-1');
       target.focus({ preventScroll: true });
       const offset = hash === '#top' ? 0 : -76;
-      if (lenis) lenis.scrollTo(target, { offset, duration: hash === '#top' ? 1.65 : 1.2, easing: t => 1 - Math.pow(1 - t, 4) });
-      else window.scrollTo({ top: Math.max(0, scrollY + target.getBoundingClientRect().top + offset), behavior: disabled ? 'instant' : 'smooth' });
+      const top = Math.max(0, anchorTop(target) + offset);
+      if (lenis) lenis.scrollTo(top, { duration: hash === '#top' ? 1.65 : 1.2, easing: t => 1 - Math.pow(1 - t, 4) });
+      else window.scrollTo({ top, behavior: disabled ? 'instant' : 'smooth' });
     };
     document.addEventListener('click', navigate);
+    const revealFocusedScene = (event: FocusEvent) => {
+      const control = event.target as HTMLElement;
+      const scene = control.closest<HTMLElement>('.work-scene');
+      if (!scene || control === scene || compact || disabled) return;
+      const rect = control.getBoundingClientRect();
+      const hit = document.elementFromPoint(rect.left + rect.width / 2, Math.min(innerHeight - 1, Math.max(0, rect.top + rect.height / 2)));
+      if (rect.top >= 76 && rect.bottom <= innerHeight && hit && scene.contains(hit)) return;
+      const inside = rect.bottom - scene.getBoundingClientRect().top;
+      const top = Math.max(0, anchorTop(scene) + Math.max(-76, inside - innerHeight + 32));
+      if (lenis) lenis.scrollTo(top, { immediate: true });
+      else window.scrollTo({ top, behavior: 'instant' });
+    };
+    document.addEventListener('focusin', revealFocusedScene);
+    let alive = true;
+    const restoreHash = () => {
+      if (!alive || document.documentElement.classList.contains('intro-locked')) return;
+      const target = document.getElementById(location.hash.slice(1) || 'top');
+      if (!target) return;
+      const offset = target.id === 'top' ? 0 : -76;
+      const top = Math.max(0, anchorTop(target) + offset);
+      if (lenis) lenis.scrollTo(top, { immediate: true });
+      else window.scrollTo({ top, behavior: 'instant' });
+    };
+    addEventListener('popstate', restoreHash);
+    addEventListener('hashchange', restoreHash);
+    const restoreInitial = () => { if (location.hash && scrollY < 1) restoreHash(); };
+    const hashDeadline = window.setTimeout(restoreInitial, 700);
+    document.fonts.ready.then(restoreInitial);
 
     if (lenis) gsap.ticker.add(update);
     ScrollTrigger.refresh();
 
     return () => {
       document.removeEventListener('click', navigate);
+      document.removeEventListener('focusin', revealFocusedScene);
+      alive = false;
+      clearTimeout(hashDeadline);
+      removeEventListener('popstate', restoreHash);
+      removeEventListener('hashchange', restoreHash);
+      lockObserver.disconnect();
+      document.removeEventListener('visibilitychange', syncLock);
       unsubscribe?.();
       gsap.ticker.remove(update);
       lenis?.destroy();
@@ -176,11 +237,13 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       });
     }, root);
 
-    const refresh = () => ScrollTrigger.refresh();
+    let active = true;
+    const refresh = () => { if (active) ScrollTrigger.refresh(); };
     document.fonts.ready.then(refresh);
     addEventListener('load', refresh, { once: true });
 
     return () => {
+      active = false;
       removeEventListener('load', refresh);
       context.revert();
       gsap.set(revealTargets, { clearProps: 'all' });

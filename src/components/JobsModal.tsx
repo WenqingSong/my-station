@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
+import { useModalFocus } from '../useModalFocus';
 import './jobs-modal.css';
 
 type JobsModalProps = {
   onClose: () => void;
+  disabled: boolean;
 };
 
-export default function JobsModal({ onClose }: JobsModalProps) {
+export default function JobsModal({ onClose, disabled }: JobsModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
-  const primaryRef = useRef<HTMLButtonElement>(null);
+  const exitTimeline = useRef<gsap.core.Timeline | null>(null);
   const closingRef = useRef(false);
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduced = disabled;
 
   const finishClose = useCallback(() => {
     document.documentElement.classList.remove('jobs-modal-open');
@@ -27,10 +29,12 @@ export default function JobsModal({ onClose }: JobsModalProps) {
       finishClose();
       return;
     }
-    gsap.timeline({ onComplete: finishClose })
+    exitTimeline.current = gsap.timeline({ onComplete: finishClose })
       .to(dialog, { opacity: 0, y: 14, duration: .24, ease: 'power2.in' })
       .to(overlay, { opacity: 0, duration: .2, ease: 'power2.in' }, '-=.1');
   }, [finishClose, reduced]);
+
+  useModalFocus(dialogRef, true, requestClose);
 
   useEffect(() => {
     document.documentElement.classList.add('jobs-modal-open');
@@ -39,7 +43,6 @@ export default function JobsModal({ onClose }: JobsModalProps) {
     if (!overlay || !dialog) return undefined;
     if (reduced) {
       gsap.set([overlay, dialog], { opacity: 1, y: 0, scale: 1 });
-      primaryRef.current?.focus();
       return undefined;
     }
     const items = dialog.querySelectorAll('.jobs-modal-item');
@@ -52,24 +55,16 @@ export default function JobsModal({ onClose }: JobsModalProps) {
       .fromTo(items,
         { opacity: 0, y: 10 },
         { opacity: 1, y: 0, duration: .3, stagger: .05, ease: 'power3.out' }, '-=.26');
-    primaryRef.current?.focus();
     return () => { timeline.kill(); };
   }, [reduced]);
 
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') requestClose();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [requestClose]);
-
   useEffect(() => () => {
+    exitTimeline.current?.kill();
     document.documentElement.classList.remove('jobs-modal-open');
   }, []);
 
   return (
-    <div className="jobs-modal-overlay" ref={overlayRef} onClick={requestClose}>
+    <div className="jobs-modal-overlay" ref={overlayRef} onClick={requestClose} data-lenis-prevent>
       <div
         className="jobs-modal"
         ref={dialogRef}
@@ -89,7 +84,7 @@ export default function JobsModal({ onClose }: JobsModalProps) {
           <button
             type="button"
             className="jobs-modal-btn primary"
-            ref={primaryRef}
+            data-initial-focus
             onClick={() => { window.location.href = '/offer/'; }}
           >
             查看 Offer 捕手 <span aria-hidden="true">→</span>

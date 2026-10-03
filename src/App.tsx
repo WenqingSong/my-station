@@ -7,6 +7,7 @@ import SelectedWork from './components/SelectedWork';
 import AboutEditorial from './components/AboutEditorial';
 import SiteDetails from './components/SiteDetails';
 import JobsModal from './components/JobsModal';
+import { useModalFocus } from './useModalFocus';
 import { useCompactMotion, useMotionInfrastructure } from './motion';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -84,11 +85,14 @@ type OpeningProps = {
 };
 
 function Opening({ reduced, onComplete }: OpeningProps) {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(() => !reduced && (!location.hash || location.hash === '#top'));
   const rootRef = useRef<HTMLDivElement>(null);
   const timeline = useRef<gsap.core.Timeline | null>(null);
+  const completed = useRef(false);
 
   const finish = useCallback(() => {
+    if (completed.current) return;
+    completed.current = true;
     document.documentElement.classList.remove('intro-locked');
     gsap.set(document.querySelectorAll('.hero-opening-target'), { clearProps: 'transform,opacity' });
     setVisible(false);
@@ -100,9 +104,11 @@ function Opening({ reduced, onComplete }: OpeningProps) {
     finish();
   }, [finish]);
 
+  useModalFocus(rootRef, visible && !reduced, skip);
+
   useLayoutEffect(() => {
     if (!visible || !rootRef.current) {
-      document.documentElement.classList.remove('intro-locked');
+      finish();
       return;
     }
     if (reduced) {
@@ -111,9 +117,11 @@ function Opening({ reduced, onComplete }: OpeningProps) {
     }
     document.documentElement.classList.add('intro-locked');
     let cancelled = false;
+    let begun = false;
     let context: gsap.Context | undefined;
     const begin = () => {
-      if (cancelled || !rootRef.current) return;
+      if (cancelled || begun || !rootRef.current) return;
+      begun = true;
       const heroTargets = document.querySelectorAll('.hero-opening-target');
       gsap.set(heroTargets, { opacity: 0, y: 28 });
       context = gsap.context(() => {
@@ -157,9 +165,11 @@ function Opening({ reduced, onComplete }: OpeningProps) {
           .to(heroTargets, { opacity: 1, y: 0, duration: .58, stagger: .028, ease: 'power3.out' }, 'curtain+=.12');
       }, rootRef);
     };
+    const deadline = window.setTimeout(begin, 650);
     document.fonts.ready.then(begin);
     return () => {
       cancelled = true;
+      clearTimeout(deadline);
       timeline.current?.kill();
       context?.revert();
       gsap.set(document.querySelectorAll('.hero-opening-target'), { clearProps: 'transform,opacity' });
@@ -169,7 +179,7 @@ function Opening({ reduced, onComplete }: OpeningProps) {
 
   if (!visible) return null;
   return (
-    <div className="opening" ref={rootRef} aria-label="多语言问候开场，最终呈现 Arthur">
+    <div className="opening" ref={rootRef} role="dialog" aria-modal="true" aria-label="多语言问候开场，可跳过或按 Escape 关闭" data-lenis-prevent>
       <div className="opening-panel opening-panel-top" aria-hidden="true" />
       <div className="opening-panel opening-panel-bottom" aria-hidden="true" />
       <button className="opening-skip" type="button" onClick={skip}>Skip intro</button>
@@ -304,9 +314,9 @@ function Hero({ paused, motionDisabled, reduced, toggleMotion }: { paused: boole
       });
       timeline
         .addLabel('depth', 0)
-        .to('.hero-statement', { scale: 1.09, yPercent: -3, letterSpacing: '-.078em', transformOrigin: '14% 56%', ease: 'none', duration: .66 }, 'depth')
+        .to('.hero-statement', { scale: 1.04, yPercent: -3, letterSpacing: () => -.06 * parseFloat(getComputedStyle(section.querySelector('.hero-statement')!).fontSize), transformOrigin: '14% 56%', ease: 'none', duration: .66 }, 'depth')
         .to('.hero-statement-line:first-child', { xPercent: -2.6, ease: 'none', duration: .66 }, 'depth')
-        .to('.hero-statement-line:last-child', { xPercent: 3.8, ease: 'none', duration: .66 }, 'depth')
+        .to('.hero-statement-line:last-child', { xPercent: 1.5, ease: 'none', duration: .66 }, 'depth')
         .to('.hero-kicker', { y: -84, opacity: .12, ease: 'none', duration: .56 }, 'depth')
         .to('.hero-introduction p:first-child', { y: -30, xPercent: -2, opacity: .46, ease: 'none', duration: .64 }, 'depth+=.02')
         .to('.hero-introduction p:last-child', { y: -78, xPercent: 2, scale: .96, opacity: .22, transformOrigin: 'right bottom', ease: 'none', duration: .68 }, 'depth')
@@ -375,7 +385,10 @@ function App() {
     }
   }, []);
 
-  const closeJobsModal = useCallback(() => setShowJobsModal(false), []);
+  const closeJobsModal = useCallback(() => {
+    setShowJobsModal(false);
+    history.replaceState(null, '', `/${location.hash}`);
+  }, []);
 
   useMotionInfrastructure({ disabled, compact });
 
@@ -384,12 +397,6 @@ function App() {
     document.documentElement.classList.toggle('motion-paused', disabled);
     document.documentElement.classList.toggle('motion-compact', compact);
   }, [compact, disabled]);
-  useEffect(() => {
-    const refresh = () => ScrollTrigger.refresh();
-    document.fonts.ready.then(refresh);
-    addEventListener('resize', refresh);
-    return () => removeEventListener('resize', refresh);
-  }, []);
 
   return (
     <>
@@ -449,7 +456,7 @@ function App() {
           </div>
         </section>
       </main>
-      {showJobsModal && <JobsModal onClose={closeJobsModal} />}
+      {showJobsModal && <JobsModal onClose={closeJobsModal} disabled={disabled} />}
     </>
   );
 }

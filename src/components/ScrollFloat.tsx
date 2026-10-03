@@ -51,5 +51,5 @@ export default function ScrollFloat({ children, className = '', disabled = false
     return () => ctx.revert();
   }, [children, disabled]);
 
-  return <h2 ref={ref} className={`scroll-float ${className}`}><span>{characters}</span></h2>;
+  return <h2 ref={ref} className={`scroll-float ${className}`} aria-label={children}><span aria-hidden="true">{characters}</span></h2>;
 }
