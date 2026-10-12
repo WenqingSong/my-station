@@ -1,0 +1,104 @@
+$:
+  vscode:
+    - name: goland-dev
+      runner:
+        cpus: 8
+      services:
+        - vscode
+        - docker
+
+      docker:
+        image: docker.cnb.cool/arthur-cloud-native/jetbrains/goland:5.0.1
+
+      stages:
+        - name: start-dependencies
+          script: |
+            docker compose up -d
+            bash -c 'source scripts/lib.sh; wait_for_deps'
+      
+        - name: environment-check
+          script: |
+            go version
+            git --version
+            docker version
+            docker compose version
+main:
+  pull_request:
+    - name: pr-check
+      services:
+        - docker
+      docker:
+        image: golang:1.24
+        volumes:
+          - /go/pkg/mod
+          - /root/.cache/go-build
+      stages:
+        - name: start-dependencies
+          script: |
+            docker compose up -d
+            bash -c 'source scripts/lib.sh; wait_for_deps'
+
+        - name: test
+          script: make test
+
+  push:
+    - name: main-ci
+      services:
+        - docker
+      docker:
+        image: golang:1.24
+        volumes:
+          - /go/pkg/mod
+          - /root/.cache/go-build
+      stages:
+        - name: start-dependencies
+          script: |
+            docker compose up -d
+            bash -c 'source scripts/lib.sh; wait_for_deps'
+
+        - name: test
+          script: make test
+
+        - name: build
+          script: |
+            mkdir -p bin
+            go build -trimpath -o bin/my-shop .
+
+        - name: sync-to-github-mirror
+          # 只有原仓库（framework-station/my-shop）才执行 GitHub 镜像同步。
+          # fork 后 CNB_REPO_SLUG 会变成 fork 者的组织/仓库名，此步骤会自动跳过，
+          # 也就不会去访问私有的密钥仓库，fork 用户的 CI 不受影响。
+          if: |
+            [ "${CNB_REPO_SLUG}" = "framework-station/my-station" ]
+          imports:
+            - https://cnb.cool/framework-station/my-station-password/-/blob/main/github-mirror.yml
+          script: |
+            set -euo pipefail
+
+            printf 'machine github.com\nlogin %s\npassword %s\n' \
+              "${GITHUB_USERNAME}" "${GITHUB_TOKEN}" > "${HOME}/.netrc"
+            chmod 600 "${HOME}/.netrc"
+            trap 'rm -f "${HOME}/.netrc"' EXIT
+
+            git fetch origin \
+              '+refs/heads/*:refs/remotes/cnb/*' \
+              '+refs/tags/*:refs/tags/*' \
+              --prune
+
+            git remote remove github-mirror 2>/dev/null || true
+            git remote add github-mirror \
+              https://github.com/WenqingSong/my-station.git
+
+            for ref in $(git for-each-ref \
+              --format='%(refname)' refs/remotes/cnb); do
+              branch="${ref#refs/remotes/cnb/}"
+              if [ "${branch}" = "HEAD" ]; then
+                continue
+              fi
+              echo "Syncing branch: ${branch}"
+              git push github-mirror \
+                "${ref}:refs/heads/${branch}"
+            done
+
+            echo "Syncing tags"
+            git push github-mirror --tags
