@@ -69,6 +69,35 @@ const greetings = [
   { text: 'Sawubona', locale: 'zu', label: 'isiZulu' }
 ];
 
+type EntryIntent = 'offer' | 'jobs';
+
+// Offer 捕手入口：仅识别明确的 entry=offer 查询参数，或旧 /jobs 路径（独立开发降级）。
+function detectEntryIntent(location: Location): EntryIntent | null {
+  if (new URLSearchParams(location.search).get('entry') === 'offer') return 'offer';
+  if (location.pathname.replace(/\/+$/, '') === '/jobs') return 'jobs';
+  return null;
+}
+
+// 一次性消费入口：清除 entry 参数、将 /jobs 规范化到 /，同时保留其他查询参数与 Hash。
+function buildConsumedUrl(location: Location): string | null {
+  let pathname = location.pathname;
+  const params = new URLSearchParams(location.search);
+  let changed = false;
+
+  if (pathname.replace(/\/+$/, '') === '/jobs') {
+    pathname = '/';
+    changed = true;
+  }
+  if (params.has('entry')) {
+    params.delete('entry');
+    changed = true;
+  }
+
+  if (!changed) return null;
+  const search = params.toString();
+  return pathname + (search ? `?${search}` : '') + location.hash;
+}
+
 function useReducedMotion() {
   const [reduced, setReduced] = useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
   useEffect(() => {
@@ -216,15 +245,25 @@ function App() {
 
   const [showJobsModal, setShowJobsModal] = useState(false);
 
+  // 入口意图仅在初始化时捕获一次；StrictMode 双渲染下 ref 保持同一值，不会重复识别。
+  const entryIntentRef = useRef<EntryIntent | null | undefined>(undefined);
+  if (entryIntentRef.current === undefined) {
+    entryIntentRef.current = detectEntryIntent(window.location);
+  }
+
   const handleOpeningComplete = useCallback(() => {
-    if (window.location.pathname.replace(/\/+$/, '') === '/jobs') {
-      setShowJobsModal(true);
+    const intent = entryIntentRef.current;
+    if (!intent) return;
+    entryIntentRef.current = null; // 一次性消费，保证重复完成回调不会重复打开弹窗
+    const nextUrl = buildConsumedUrl(window.location);
+    if (nextUrl !== null) {
+      history.replaceState(history.state, '', nextUrl);
     }
+    setShowJobsModal(true);
   }, []);
 
   const closeJobsModal = useCallback(() => {
     setShowJobsModal(false);
-    history.replaceState(null, '', `/${location.hash}`);
   }, []);
 
   useMotionInfrastructure({ disabled, compact });

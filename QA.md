@@ -59,7 +59,8 @@
 2. `/qa.html`：开发诊断；DOM 中的 `#qa-readout` 输出短时间帧间隔、字体状态和布局偏移。
 3. `/qa.html?motion=reduce`：仅模拟 JS 减少动画查询，不模拟浏览器 CSS 媒体条件。
 4. `/qa.html?motion=reduce&entry=jobs`：检查减动效弹窗；`/jobs` 检查正常开场后的弹窗。
-5. `npm run build`，`npm run preview`：检查独立生产产物。
+5. `/?entry=offer`：检查新 Gateway 入口（开场结束后弹窗、取消不重复、确认跳 `/offer/`）；`/` 检查普通首页不弹窗。
+6. `npm run build`，`npm run preview`：检查独立生产产物。
 
 发布是否成功应以托管平台返回的最终状态为准，不以本文件、构建通过或 Git 推送代替。
 
