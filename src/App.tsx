@@ -19,6 +19,10 @@ const projects = [
     index: '01',
     title: 'SurgeCart',
     subtitle: '电商交易与秒杀系统',
+    preview: {
+      note: '秒杀链路：准入不等于下单成功。',
+      steps: [['Redis Lua', '准入'], ['MySQL 请求表', '排队'], ['订单事务', '落单']]
+    },
     category: '个人项目 · Go Backend',
     label: '订单与库存',
     heading: <>重复请求，<br />不能重复扣库存。</>,
@@ -31,6 +35,10 @@ const projects = [
     index: '02',
     title: 'Agent Workflow',
     subtitle: '基于 Git 的多 Agent 协作工具',
+    preview: {
+      note: '把交接与审查关联到具体提交。',
+      steps: [['任务文件', '交接'], ['Git Commit', '绑定'], ['Go 校验器', '检查']]
+    },
     category: '个人项目 · Developer Tooling',
     label: '任务与审查',
     heading: <>代码变了，<br />审查结论还有效吗？</>,
@@ -43,6 +51,10 @@ const projects = [
     index: '03',
     title: 'Offer 捕手',
     subtitle: 'AI 求职匹配与简历优化工具',
+    preview: {
+      note: '结构不合约定，先修复，再回退。',
+      steps: [['Schema', '校验'], ['Repair', '修复一次'], ['业务流程', '必要时回退']]
+    },
     category: '个人项目 · AI Application',
     label: '简历与岗位',
     heading: <>模型的回答，<br />先检查再使用。</>,
@@ -285,7 +297,7 @@ function App() {
       </header>
       <SiteDetails disabled={disabled} compact={compact} />
       <main>
-        <FirstHero paused={complexMotionDisabled} motionDisabled={disabled} reduced={reduced} toggleMotion={() => setMotionPaused(value => !value)} />
+        <FirstHero projects={projects} paused={complexMotionDisabled} motionDisabled={disabled} reduced={reduced} toggleMotion={() => setMotionPaused(value => !value)} />
 
         <section className="intro section-shell" id="intro" data-motion-section>
           <div className="intro-title">
