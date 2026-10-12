@@ -12,23 +12,23 @@ type Project = {
 function ProjectVisual({ kind }: { kind: string }) {
   if (kind === 'delivery') return <div className="delivery-system">
     <div className="delivery-orbit orbit-one" /><div className="delivery-orbit orbit-two" />
-    <div className="delivery-route"><span>ORDER</span><i /><span>KITCHEN</span><i /><span>HANDOFF</span></div>
-    <div className="delivery-slip slip-back"><span>02 / FULFILMENT</span><strong>Prepare.</strong><i /><i /><i /></div>
-    <div className="delivery-slip slip-front"><span>01 / REQUEST</span><strong>One order.<br />Every step.</strong><div className="slip-divider" /><p>订单 · 履约 · 状态</p><div className="slip-bars" /></div>
+    <div className="delivery-route"><span>ADMIT</span><i /><span>QUEUE</span><i /><span>COMMIT</span></div>
+    <div className="delivery-slip slip-back"><span>02 / MYSQL QUEUE</span><strong>Queued.</strong><i /><i /><i /></div>
+    <div className="delivery-slip slip-front"><span>01 / REDIS LUA</span><strong>One request.<br />One order.</strong><div className="slip-divider" /><p>准入 · 异步落单 · 对账</p><div className="slip-bars" /></div>
     <span className="visual-coordinate">A → B → C</span>
   </div>;
   if (kind === 'backend') return <div className="backend-system">
     <div className="service-axis" />
-    {['INTERFACE', 'SERVICE', 'DATA'].map((label, i) => <div className={`service-plane plane-${i}`} key={label}>
+    {['TASK', 'REVIEW', 'COMMIT'].map((label, i) => <div className={`service-plane plane-${i}`} key={label}>
       <span>0{i + 1}</span><strong>{label}</strong><div className="plane-grid" /><i />
     </div>)}
-    <span className="visual-coordinate">REQUEST / RESPONSE</span>
+    <span className="visual-coordinate">TASK / REVIEW / GIT COMMIT</span>
   </div>;
   return <div className="matching-system">
     <div className="match-orbit" /><div className="match-links"><i /><i /><i /><i /><i /></div>
-    <div className="match-document document-a"><span>01 / PROFILE</span><strong>Skills.<br />Experience.<br />Potential.</strong><div className="document-lines"><i /><i /><i /><i /></div></div>
-    <div className="match-document document-b"><span>02 / OPPORTUNITY</span><strong>Context.<br />Requirements.<br />Connection.</strong><div className="document-lines"><i /><i /><i /><i /></div></div>
-    <div className="match-core">×</div><span className="visual-coordinate">RETRIEVE → REASON → EXPLAIN</span>
+    <div className="match-document document-a"><span>01 / RESUME</span><strong>Skills.<br />Projects.<br />Experience.</strong><div className="document-lines"><i /><i /><i /><i /></div></div>
+    <div className="match-document document-b"><span>02 / JOB</span><strong>Role.<br />Skills.<br />Requirements.</strong><div className="document-lines"><i /><i /><i /><i /></div></div>
+    <div className="match-core">×</div><span className="visual-coordinate">FAST / DEEP ANALYSIS</span>
   </div>;
 }
 
@@ -122,7 +122,7 @@ export default function SelectedWork({ projects, compact, disabled }: { projects
     return () => { active = false; context.revert(); };
   }, [compact, disabled]);
   return <section className={`selected-work ${compact || disabled ? 'work-linear' : ''} ${disabled ? 'work-still' : ''}`} id="work" ref={rootRef} aria-labelledby="work-heading">
-    <div className="work-prologue section-shell"><p className="eyebrow">SELECTED WORK / 01—03</p><h2 id="work-heading">Built with purpose<span>.</span></h2><div><p>从业务流程，到工程实践，<br />再到 AI 与后端的交汇。</p><span>SCROLL TO EXPLORE ↓</span></div></div>
+    <div className="work-prologue section-shell"><p className="eyebrow">SELECTED WORK / 01—03</p><h2 id="work-heading">Selected projects<span>.</span></h2><div><p>三个个人项目：<br />电商后端、Agent 协作和 AI 求职工具。</p><span>SCROLL TO EXPLORE ↓</span></div></div>
     <div className="work-scenes">{projects.map(project => <WorkScene key={project.id} project={project} disabled={disabled} compact={compact} />)}</div>
   </section>;
 }

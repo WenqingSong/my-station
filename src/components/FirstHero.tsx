@@ -93,11 +93,11 @@ export default function FirstHero({ paused, motionDisabled, reduced, toggleMotio
 
   return <section className="first-hero" id="top" ref={rootRef} aria-label="Arthur，Go 后端开发" data-motion-section>
     <canvas className="first-hero-field" ref={canvasRef} aria-hidden="true" />
-    <div className="first-kicker hero-opening-target"><span>Go Backend Developer</span><span>Ma’anshan · China</span></div>
+    <div className="first-kicker hero-opening-target"><span>2027 届软件工程本科生 · Go 后端开发</span><span>Ma’anshan · China</span></div>
     <h1 className="first-pressure-title hero-opening-target" aria-label="Arthur — Backend Developer"><span className="first-pressure-line">ARTHUR</span><span className="first-pressure-line first-accent">DEVELOPER</span></h1>
-    <div className="first-bottom hero-opening-target"><p>我关注请求如何穿过系统、数据如何保持可信，<br className="first-desktop-break" />以及服务在失败之后如何恢复。</p><a className="first-round-link" href="#work" aria-label="查看项目"><span>VIEW<br />WORK</span><b aria-hidden="true">↘</b></a></div>
+    <div className="first-bottom hero-opening-target"><p>我是 Arthur。最近一边准备求职，<br className="first-desktop-break" />一边完善电商后端，也继续维护自己的 AI 求职工具。</p><a className="first-round-link" href="#work" aria-label="查看项目"><span>VIEW<br />WORK</span><b aria-hidden="true">↘</b></a></div>
     <div className="first-window-position first-window-a hero-opening-target"><div className="first-floating-window" aria-hidden="true"><span className="first-window-label">REQUEST FLOW / CONCEPT</span><div className="first-flow-row"><i /><b>Gateway</b><em>route</em></div><div className="first-flow-row"><i /><b>Service</b><em>process</em></div><div className="first-flow-row"><i /><b>MySQL</b><em>persist</em></div></div></div>
-    <div className="first-window-position first-window-b hero-opening-target"><div className="first-floating-window"><span className="first-window-label">CURRENT FOCUS</span><strong>GO + CLOUD</strong><small>Build · Learn · Repeat</small></div></div>
+    <div className="first-window-position first-window-b hero-opening-target"><div className="first-floating-window"><span className="first-window-label">CURRENT PROJECT</span><strong>SurgeCart</strong><small>Orders · Stock · Recovery</small></div></div>
     <span className="first-scroll-cue" aria-hidden="true">Scroll to inspect <span>↓</span></span>
     <button className="first-motion-toggle" type="button" onClick={toggleMotion} aria-pressed={motionDisabled} disabled={reduced}>{reduced ? '系统减少动效' : motionDisabled ? '开启动效 ▷' : '暂停动效 Ⅱ'}</button>
   </section>;

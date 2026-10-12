@@ -17,38 +17,38 @@ const projects = [
   {
     id: 'delivery',
     index: '01',
-    title: 'Campus Delivery',
-    subtitle: '校园外卖平台',
-    category: 'Go · Business systems',
-    label: '业务闭环',
-    heading: <>把一次下单，<br />放回完整流程。</>,
-    description: '面向校园场景的点餐与外卖课程项目，围绕商品、订单与商家履约展开后端实践。',
-    focus: '状态流转、数据一致性，以及异常发生后的处理边界。',
-    stack: 'Go / Gin / MySQL / Redis'
+    title: 'SurgeCart',
+    subtitle: '电商交易与秒杀系统',
+    category: '个人项目 · Go Backend',
+    label: '订单与库存',
+    heading: <>重复请求，<br />不能重复扣库存。</>,
+    description: '从普通订单做起，我后来花了更多时间处理重复下单、库存扣减和失败恢复。秒杀先由 Redis Lua 控制准入，再通过 MySQL 请求表排队、异步落单。我用并发测试和库存对账检查最终结果。',
+    focus: '为什么选 MySQL 请求表，而不是直接引入 Kafka？支付目前使用 Mock，不接真实交易。',
+    stack: 'Go / GoFrame / MySQL / Redis / Prometheus'
   },
   {
     id: 'backend',
     index: '02',
-    title: 'Backend Practice',
-    subtitle: 'Go 后端开发实习',
-    category: 'Go · Engineering',
-    label: '工程实践',
-    heading: <>在真实约束下，<br />理解与改进。</>,
-    description: '在已有业务和代码结构中参与 Go 后端开发，连接接口、服务逻辑与数据访问。',
-    focus: '请求路径、接口边界、中间件协作与失败处理。',
-    stack: 'Go / REST / gRPC / MySQL / Redis'
+    title: 'Agent Workflow',
+    subtitle: '基于 Git 的多 Agent 协作工具',
+    category: '个人项目 · Developer Tooling',
+    label: '任务与审查',
+    heading: <>代码变了，<br />审查结论还有效吗？</>,
+    description: '用 AI Agent 开发时，我发现任务交接、代码修改和审查结论容易对不上。于是设计了多角色协作流程，并开发 Go 校验器，把任务状态和审查结果关联到具体 Git Commit，在交接前检查是否发生变化。',
+    focus: '一次审查通过之后，怎样发现后续提交已经改变了被审查的代码？',
+    stack: 'Go / Git / 自动化测试'
   },
   {
     id: 'matching',
     index: '03',
-    title: 'AI × Recruitment',
-    subtitle: '岗位匹配与简历优化',
-    category: 'AI · Backend systems',
-    label: 'AI 与后端',
-    heading: <>找到关联，<br />也解释关联。</>,
-    description: '结合大模型与后端工程，探索岗位信息、个人简历和匹配建议之间的连接。',
-    focus: '信息提取、检索与结构化输出，让匹配结果能够被理解。',
-    stack: 'Go / LLM API / 向量检索'
+    title: 'Offer 捕手',
+    subtitle: 'AI 求职匹配与简历优化工具',
+    category: '个人项目 · AI Application',
+    label: '简历与岗位',
+    heading: <>模型的回答，<br />先检查再使用。</>,
+    description: '这个网站来自我自己的求职需求，已经做过公网部署，还在维护。我组织并推进 Go 后端、React 前端和 LLM 接入。模型输出不符合约定时，先做 Schema 校验与修复；仍不通过，再由业务流程回退。',
+    focus: '为什么分 Fast 和 Deep 两级分析？结构校验通过，也不等于内容一定正确。',
+    stack: 'Go / React / MySQL / LLM API / JSON Schema'
   }
 ];
 
@@ -290,10 +290,10 @@ function App() {
         <section className="intro section-shell" id="intro" data-motion-section>
           <div className="intro-title">
             <p className="eyebrow">A LITTLE INTRODUCTION</p>
-            <ScrollFloat disabled={complexMotionDisabled}>从一次请求，到一个可靠的系统。</ScrollFloat>
+            <ScrollFloat disabled={complexMotionDisabled}>最近主要在忙这些事情。</ScrollFloat>
           </div>
           <AnimatedContent className="intro-aside" distance={60} threshold={.25} disabled={disabled}>
-            <p>我是 Arthur，一名专注 Go 后端开发的本科生。关注请求如何流转、数据如何保持一致，以及系统在失败时如何恢复。</p>
+            <p>目前花时间最多的是 SurgeCart 的订单、秒杀和失败恢复，也在维护 Offer 捕手。使用 AI Agent 开发时遇到的交接问题，让我开始做 Agent Workflow。<br /><br />2026 年 7—8 月，我在杭州智航星辰人工智能科技有限公司做 Go 后端实习，参与企业课程平台开发，跟进 AI 客服系统的问题定位、修复和联调。</p>
             <a className="round-button" data-magnetic data-cursor="action" href="#about">About me <span aria-hidden="true">↗</span></a>
           </AnimatedContent>
         </section>
@@ -310,9 +310,9 @@ function App() {
           </div>
           <div className="capability-list">
             {[
-              ['01', 'Go & APIs', '围绕请求与服务边界，学习和实践清晰的接口设计。', 'Go · Gin · REST · gRPC'],
-              ['02', 'Data & State', '关注数据存储、缓存、状态变化与一致性。', 'MySQL · Redis · SQL'],
-              ['03', 'Cloud & Reliability', '持续学习部署、容器与可观测性，用测试验证行为和失败路径。', 'Docker · Cloud Computing · Verification']
+              ['01', 'Go & Backend', '主要用 Go 和 GoFrame 写 REST API。在电商项目里实践事务、库存条件更新、幂等和异步落单，再用测试检查重复请求和失败路径。', 'Go · GoFrame · MySQL · Redis'],
+              ['02', 'AI & Tooling', '做过 LLM 结构化输出校验与回退，也在用 Git 和 Go 工具检查 Agent 的任务交接与代码审查。AI 帮我提效，但不能代替验证。', 'JSON Schema · Git · Go'],
+              ['03', 'Deployment & Cloud', '用 Docker Compose 和 Nginx 部署过项目，接触过 Prometheus 指标监控。长期关注云计算，Kubernetes 还在学习中。', 'Docker Compose · Nginx · Prometheus']
             ].map(([index, title, copy, stack]) => <article key={index} data-reveal="row"><span>{index}</span><div><h3>{title}</h3><p>{copy}</p><small>{stack}</small></div></article>)}
           </div>
         </section>
@@ -328,7 +328,7 @@ function App() {
             </h2>
             <div className="contact-rule"><span className="contact-rule-line" aria-hidden="true" /><a className="round-button blue" data-magnetic data-cursor="action" href="mailto:1784870640@qq.com">Get in touch <span aria-hidden="true">↗</span></a></div>
             <div className="contact-options" data-reveal="content"><a className="text-link" href="mailto:1784870640@qq.com">1784870640@qq.com <span aria-hidden="true">↗</span></a><div><a className="text-link" href="tel:+8618256109164"><span className="contact-option-label">PHONE</span><span>+86 182 5610 9164</span></a><span><span className="contact-option-label">QQ</span><span>1784870640</span></span></div></div>
-            <div className="contact-signoff"><span className="contact-signoff-word">Arthur<span>.</span></span><span className="contact-signoff-note">Thanks for stopping by. / 谢谢你的停留。</span></div>
+            <div className="contact-signoff"><span className="contact-signoff-word">Arthur<span>.</span></span><span className="contact-signoff-note">聊项目、工作机会，或告诉我网站哪里需要改进。</span></div>
             <footer><span>2026 © Arthur</span><span>China · UTC+8</span><button type="button" onClick={() => setMotionPaused(value => !value)} aria-pressed={disabled} disabled={reduced}>{reduced ? '系统减少动效' : disabled ? '开启动效　▷' : '暂停动效　Ⅱ'}</button><a className="back-top" href="#top">Back to top <span aria-hidden="true">↑</span></a></footer>
           </div>
         </section>

@@ -77,7 +77,7 @@ export default function JobsModal({ onClose, disabled }: JobsModalProps) {
         <p className="jobs-modal-item jobs-modal-eyebrow">Project redirect</p>
         <h2 className="jobs-modal-item jobs-modal-title" id="jobs-modal-title">前往 Offer 捕手？</h2>
         <p className="jobs-modal-item jobs-modal-desc" id="jobs-modal-desc">
-          你正在通过我的项目入口访问 Offer 捕手。这是一个面向学生求职场景的岗位智能匹配项目，用于展示我的后端开发与 AI 工程实践。是否继续查看项目？
+          Offer 捕手是我根据自己的求职需求做的工具，用来分析简历与岗位，并给出修改建议。模型建议仍需自己判断。继续后将离开个人主页，进入项目。
         </p>
         <div className="jobs-modal-item jobs-modal-actions">
           <button type="button" className="jobs-modal-btn secondary" onClick={requestClose}>留在个人主页</button>

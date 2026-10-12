@@ -53,19 +53,21 @@ export default function AboutEditorial({ disabled, compact }: { disabled: boolea
       <div className="about-narrative" data-reveal="content">
         <p className="about-small-label">A LITTLE ABOUT ME</p>
         <h3>Hi, I’m Arthur.</h3>
-        <p>中文名宋文清，目前就读于马鞍山学院，预计 2027 年 7 月毕业。</p>
-        <p>我的方向是 Go 后端开发，长期关注云计算。我喜欢理解系统如何运作，也享受把一个问题慢慢想清楚的过程。</p>
+        <p>中文名宋文清，在马鞍山学院读软件工程，预计 2027 年 7 月毕业。</p>
+        <p>实习之后，我开始花更多时间读源码、听工程师的访谈，也写工程日记，记录遇到的问题、做过的判断，以及后来发现自己想错的地方。</p>
+        <p>项目有 AI Agent 参与实现，我负责方案取舍、推进和验收。哪些实现该保留、哪里还需要测试，我需要自己判断。遇到问题，也要跟进到验证完成。</p>
+        <p>我长期关注腾讯，也喜欢腾讯云控制台和微信读书的设计。参加腾讯云训练营，是我接触新工具的一种方式。</p>
       </div>
 
-      <aside className="about-certification" aria-label="阿里云认证" data-reveal="content">
+      <aside className="about-certification" aria-label="认证与训练营" data-reveal="content">
         <span className="certificate-mark" aria-hidden="true">[&nbsp;]</span>
-        <div><p>Alibaba Cloud <span>· ACP</span></p><span>Certified Professional · Cloud Computing</span><small>有效至 2027 年 10 月</small></div>
+        <div><p>Alibaba Cloud <span>· ACP</span></p><span>Certified Professional · Cloud Computing</span><small>有效至 2027 年 10 月</small><small>腾讯云 CNB-Docker 训练营 · 优秀学员</small></div>
       </aside>
 
       <p className="about-closing"><span className="about-closing-inner">Still becoming.</span></p>
 
       <div className="about-offclock" data-reveal="content">
-        <div className="about-offclock-intro"><p className="about-small-label">OFF THE CLOCK</p><p>代码之外，也有值得投入的事。</p></div>
+        <div className="about-offclock-intro"><p className="about-small-label">OFF THE CLOCK</p><p>不写代码的时候，我喜欢骑行、打网球，也经常看影视剧。</p></div>
         <ul className="about-pursuits">
           <li><span className="pursuit-mark mark-cycling" aria-hidden="true" /><div><span>Cycling</span><small>骑行</small></div></li>
           <li><span className="pursuit-mark mark-tennis" aria-hidden="true" /><div><span>Tennis</span><small>网球</small></div></li>
