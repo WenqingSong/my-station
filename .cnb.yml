@@ -1,71 +1,65 @@
 $:
   vscode:
-    - name: goland-dev
+    - name: node-dev
       runner:
         cpus: 8
       services:
         - vscode
-        - docker
-
       docker:
-        image: docker.cnb.cool/arthur-cloud-native/jetbrains/goland:5.0.1
-
+        image: node:22
       stages:
-        - name: start-dependencies
-          script: |
-            docker compose up -d
-            bash -c 'source scripts/lib.sh; wait_for_deps'
-      
+        - name: install-dependencies
+          script: npm ci
         - name: environment-check
           script: |
-            go version
+            node --version
+            npm --version
             git --version
-            docker version
-            docker compose version
+
 main:
   pull_request:
     - name: pr-check
-      services:
-        - docker
       docker:
-        image: golang:1.24
+        image: node:22
         volumes:
-          - /go/pkg/mod
-          - /root/.cache/go-build
+          - /root/.npm
       stages:
-        - name: start-dependencies
-          script: |
-            docker compose up -d
-            bash -c 'source scripts/lib.sh; wait_for_deps'
-
-        - name: test
-          script: make test
+        - name: install
+          script: npm ci
+        - name: build
+          script: npm run build
 
   push:
     - name: main-ci
       services:
         - docker
       docker:
-        image: golang:1.24
+        image: node:22
         volumes:
-          - /go/pkg/mod
-          - /root/.cache/go-build
+          - /root/.npm
       stages:
-        - name: start-dependencies
-          script: |
-            docker compose up -d
-            bash -c 'source scripts/lib.sh; wait_for_deps'
-
-        - name: test
-          script: make test
+        - name: install
+          script: npm ci
 
         - name: build
+          script: npm run build
+
+        - name: docker build
           script: |
-            mkdir -p bin
-            go build -trimpath -o bin/my-shop .
+            set -e
+            docker build \
+              -t "${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:${CNB_COMMIT_SHORT}" \
+              -t "${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest" \
+              .
+
+        - name: docker push
+          script: |
+            set -e
+            docker push "${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:${CNB_COMMIT_SHORT}"
+            docker push "${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest"
 
         - name: sync-to-github-mirror
-          # 只有原仓库（framework-station/my-shop）才执行 GitHub 镜像同步。
+          # 只有原仓库（framework-station/my-station）才执行 GitHub 镜像同步。
           # fork 后 CNB_REPO_SLUG 会变成 fork 者的组织/仓库名，此步骤会自动跳过，
           # 也就不会去访问私有的密钥仓库，fork 用户的 CI 不受影响。
           if: |

@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+.gitignore
+*.md
+qa
+qa.html
+.cnb.yml
+.env
+.env.*
+.DS_Store
+*.log
