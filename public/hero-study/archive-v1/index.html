@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="宋文清 Go 后端个人作品集视觉原型：编辑式排版、滚动项目卡片与交互能力矩阵。"
+    />
+    <title>Song Wenqing — Portfolio Direction Demo</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232457ff'/%3E%3Cpath d='M16 21h32L32 51z' fill='%23b8ff39'/%3E%3Ccircle cx='32' cy='21' r='9' fill='%23ff4d00'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="返回顶部">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>SWQ / 27</span>
+      </a>
+      <nav class="pill-nav" aria-label="主要导航">
+        <a class="is-active" href="#top">Index</a>
+        <a href="#work">Work</a>
+        <a href="#skills">Stack</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <span class="availability"><i></i> Available · 2027</span>
+    </header>
+
+    <main>
+      <section class="hero" id="top">
+        <canvas id="hero-field" aria-hidden="true"></canvas>
+        <div class="hero-kicker">
+          <span>Go Backend Developer</span>
+          <span>Ma'anshan · China</span>
+        </div>
+
+        <h1 class="pressure-title" aria-label="Song Wenqing">
+          <span class="pressure-line" data-text="SONG">SONG</span>
+          <span class="pressure-line accent" data-text="WENQING">WENQING</span>
+        </h1>
+
+        <div class="hero-bottom">
+          <p>
+            我关注请求如何穿过系统、数据如何保持可信，<br />
+            以及服务在失败之后如何恢复。
+          </p>
+          <a class="round-link" href="#work" aria-label="查看项目">
+            <span>VIEW<br />WORK</span>
+            <b>↘</b>
+          </a>
+        </div>
+
+        <div class="floating-window window-a" aria-hidden="true">
+          <span class="window-label">REQUEST FLOW</span>
+          <div class="flow-row"><i></i><b>Gateway</b><em>12ms</em></div>
+          <div class="flow-row"><i></i><b>Service</b><em>28ms</em></div>
+          <div class="flow-row"><i></i><b>MySQL</b><em>committed</em></div>
+        </div>
+        <div class="floating-window window-b" aria-hidden="true">
+          <span class="window-label">BUILD STATUS</span>
+          <strong>PASSING</strong>
+          <small>18 / 18 checks</small>
+        </div>
+        <div class="scroll-cue" aria-hidden="true">Scroll to inspect <span>↓</span></div>
+      </section>
+
+      <section class="manifesto" aria-label="个人方向">
+        <p class="eyebrow">01 / DIRECTION</p>
+        <p class="manifesto-copy">
+          不把项目写成技术清单。<br />
+          展示<span>问题</span>、<span>选择</span>与<span>验证</span>。
+        </p>
+      </section>
+
+      <section class="projects" id="work">
+        <div class="section-heading">
+          <p class="eyebrow">02 / SELECTED WORK</p>
+          <h2>三个项目，三种系统问题。</h2>
+        </div>
+
+        <div class="project-stack">
+          <article class="project-card card-orange">
+            <div class="project-meta">
+              <span>01 · BUSINESS LOOP</span>
+              <span>GO / GIN / MYSQL / REDIS</span>
+            </div>
+            <div class="project-main">
+              <div>
+                <p class="project-type">Campus delivery platform</p>
+                <h3>校园外卖平台</h3>
+                <p>从商品、订单到商家履约，理解一条业务链路如何保持状态一致。</p>
+              </div>
+              <div class="project-visual order-visual" aria-hidden="true">
+                <span>ORDER CREATED</span>
+                <b>01</b><b>02</b><b>03</b><b>04</b>
+                <em>PAID → ACCEPTED → DELIVERY</em>
+              </div>
+            </div>
+            <div class="project-footer"><span>Open case study</span><b>↗</b></div>
+          </article>
+
+          <article class="project-card card-blue">
+            <div class="project-meta">
+              <span>02 · REAL ENVIRONMENT</span>
+              <span>API / MIDDLEWARE / SERVICE</span>
+            </div>
+            <div class="project-main">
+              <div>
+                <p class="project-type">Go backend internship</p>
+                <h3>后端开发实习</h3>
+                <p>在已有代码和业务约束中工作，把接口、服务治理与验证连接起来。</p>
+              </div>
+              <div class="project-visual code-visual" aria-hidden="true">
+                <span>middleware.go</span>
+                <code><i>func</i> Verify(ctx Context) {</code>
+                <code>&nbsp;&nbsp;claims := auth.Parse(token)</code>
+                <code>&nbsp;&nbsp;<i>return</i> next(ctx, claims)</code>
+                <code>}</code>
+              </div>
+            </div>
+            <div class="project-footer"><span>Open case study</span><b>↗</b></div>
+          </article>
+
+          <article class="project-card card-lime">
+            <div class="project-meta">
+              <span>03 · AI × BACKEND</span>
+              <span>GO / LLM API / RETRIEVAL</span>
+            </div>
+            <div class="project-main">
+              <div>
+                <p class="project-type">Recruitment matching</p>
+                <h3>AI 校招平台</h3>
+                <p>把非结构化简历、岗位信息与后端工程组合成可解释的匹配流程。</p>
+              </div>
+              <div class="project-visual match-visual" aria-hidden="true">
+                <div class="match-score"><strong>87</strong><span>MATCH</span></div>
+                <div class="signal-bars"><i></i><i></i><i></i><i></i><i></i></div>
+                <small>skills · experience · intent</small>
+              </div>
+            </div>
+            <div class="project-footer"><span>Open case study</span><b>↗</b></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="skills" id="skills">
+        <div class="section-heading inverse">
+          <p class="eyebrow">03 / ENGINEERING TOOLKIT</p>
+          <h2>能力不是标签，是可运行的机制。</h2>
+        </div>
+
+        <div class="bento-grid">
+          <article class="bento bento-wide spotlight-card">
+            <span class="bento-index">A / CORE</span>
+            <h3>Go Backend</h3>
+            <p>清晰的请求链路、边界和失败处理。</p>
+            <div class="pulse-route" aria-hidden="true">
+              <i>HTTP</i><b></b><i>Service</i><b></b><i>Store</i>
+            </div>
+          </article>
+          <article class="bento bento-tall spotlight-card">
+            <span class="bento-index">B / DATA</span>
+            <h3>Data Flow</h3>
+            <p>MySQL · Redis · consistency</p>
+            <div class="data-orbit" aria-hidden="true"><i></i><i></i><i></i><b>DB</b></div>
+          </article>
+          <article class="bento bento-small blue spotlight-card">
+            <span class="bento-index">C / API</span>
+            <h3>Interfaces</h3>
+            <p>REST · gRPC</p>
+            <strong class="big-symbol">↔</strong>
+          </article>
+          <article class="bento bento-small orange spotlight-card">
+            <span class="bento-index">D / VERIFY</span>
+            <h3>Testing</h3>
+            <p>行为和失败路径</p>
+            <div class="test-list" aria-hidden="true"><i>✓</i><i>✓</i><i>✓</i></div>
+          </article>
+          <article class="bento bento-wide lime spotlight-card">
+            <span class="bento-index">E / NEXT</span>
+            <h3>Cloud Native</h3>
+            <p>从容器开始，逐步理解编排、恢复与可观测性。</p>
+            <div class="cloud-lines" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="contact" id="contact">
+        <p class="eyebrow">04 / NEXT REQUEST</p>
+        <a href="#top" class="contact-line">
+          <span>LET'S TRACE<br />THE NEXT SYSTEM.</span>
+          <b>↗</b>
+        </a>
+        <div class="contact-meta">
+          <span>SONG WENQING · 2026</span>
+          <span>GO BACKEND / CLOUD NATIVE</span>
+          <span>VISUAL DIRECTION DEMO</span>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

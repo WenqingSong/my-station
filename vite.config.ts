@@ -6,6 +6,9 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    assetsDir: 'assets'
+    assetsDir: 'assets',
+    rollupOptions: {
+      input: { main: 'index.html', heroStudy: 'hero-study/index.html' }
+    }
   }
 });

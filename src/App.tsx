@@ -6,6 +6,7 @@ import ScrollFloat from './components/ScrollFloat';
 import SelectedWork from './components/SelectedWork';
 import AboutEditorial from './components/AboutEditorial';
 import SiteDetails from './components/SiteDetails';
+import FirstHero from './components/FirstHero';
 import JobsModal from './components/JobsModal';
 import { useModalFocus } from './useModalFocus';
 import { useCompactMotion, useMotionInfrastructure } from './motion';
@@ -204,177 +205,13 @@ function Opening({ reduced, onComplete }: OpeningProps) {
   );
 }
 
-function DotField({ paused }: { paused: boolean }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const host = canvas?.parentElement;
-    const context = canvas?.getContext('2d');
-    if (!canvas || !host || !context) return;
-    type Point = { ox: number; oy: number; x: number; y: number; radius: number };
-    let points: Point[] = [];
-    let pointer = { x: -999, y: -999 };
-    let frame = 0;
-    let width = 0;
-    let height = 0;
-    let active = true;
-
-    const resize = () => {
-      const rect = host.getBoundingClientRect();
-      const ratio = Math.min(devicePixelRatio || 1, 2);
-      width = rect.width;
-      height = rect.height;
-      canvas.width = Math.round(width * ratio);
-      canvas.height = Math.round(height * ratio);
-      context.setTransform(ratio, 0, 0, ratio, 0, 0);
-      const step = width < 700 ? 28 : 31;
-      points = [];
-      for (let oy = step / 2; oy < height; oy += step) {
-        for (let ox = step / 2; ox < width; ox += step) points.push({ ox, oy, x: ox, y: oy, radius: .82 });
-      }
-    };
-
-    const draw = () => {
-      context.clearRect(0, 0, width, height);
-      let moving = false;
-      points.forEach(point => {
-        const dx = point.ox - pointer.x;
-        const dy = point.oy - pointer.y;
-        const distance = Math.hypot(dx, dy);
-        const force = paused ? 0 : Math.max(0, 1 - distance / 168);
-        const targetX = point.ox + (distance ? dx / distance : 0) * force * 12;
-        const targetY = point.oy + (distance ? dy / distance : 0) * force * 12;
-        const targetRadius = .82 + force * 1.18;
-        point.x += (targetX - point.x) * .1;
-        point.y += (targetY - point.y) * .1;
-        point.radius += (targetRadius - point.radius) * .1;
-        if (Math.abs(targetX - point.x) + Math.abs(targetY - point.y) > .04) moving = true;
-        context.fillStyle = force > .1 ? `rgba(48,71,255,${.15 + force * .23})` : 'rgba(25,26,30,.2)';
-        context.beginPath();
-        context.arc(point.x, point.y, point.radius, 0, Math.PI * 2);
-        context.fill();
-      });
-      frame = moving && active && !paused ? requestAnimationFrame(draw) : 0;
-    };
-
-    const wake = () => { if (!frame && active) frame = requestAnimationFrame(draw); };
-    const move = (event: globalThis.PointerEvent) => {
-      if (event.pointerType === 'touch' || paused) return;
-      const rect = host.getBoundingClientRect();
-      pointer = { x: event.clientX - rect.left, y: event.clientY - rect.top };
-      wake();
-    };
-    const leave = () => { pointer = { x: -999, y: -999 }; wake(); };
-    const resizeObserver = new ResizeObserver(() => { resize(); wake(); });
-    const visibilityObserver = new IntersectionObserver(([entry]) => {
-      active = entry.isIntersecting;
-      if (!active) { cancelAnimationFrame(frame); frame = 0; }
-      else wake();
-    });
-    resizeObserver.observe(host);
-    visibilityObserver.observe(host);
-    host.addEventListener('pointermove', move);
-    host.addEventListener('pointerleave', leave);
-    resize();
-    draw();
-    return () => {
-      cancelAnimationFrame(frame);
-      resizeObserver.disconnect();
-      visibilityObserver.disconnect();
-      host.removeEventListener('pointermove', move);
-      host.removeEventListener('pointerleave', leave);
-    };
-  }, [paused]);
-
-  return <canvas ref={canvasRef} className="hero-field" aria-hidden="true" />;
-}
-
-function Hero({ paused, motionDisabled, reduced, toggleMotion }: { paused: boolean; motionDisabled: boolean; reduced: boolean; toggleMotion: () => void }) {
-  const sectionRef = useRef<HTMLElement>(null);
-
-  useLayoutEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-    const handoff = document.querySelector<HTMLElement>('.intro-title');
-    if (paused) {
-      gsap.set(section.querySelectorAll('.hero-animate'), { clearProps: 'all' });
-      if (handoff) gsap.set(handoff, { clearProps: 'transform,opacity' });
-      return;
-    }
-    const ctx = gsap.context(() => {
-      const timeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: 'top top',
-          end: 'bottom bottom',
-          scrub: 1.05,
-          invalidateOnRefresh: true
-        }
-      });
-      timeline
-        .addLabel('depth', 0)
-        .to('.hero-statement', { scale: 1.04, yPercent: -3, letterSpacing: () => -.06 * parseFloat(getComputedStyle(section.querySelector('.hero-statement')!).fontSize), transformOrigin: '14% 56%', ease: 'none', duration: .66 }, 'depth')
-        .to('.hero-statement-line:first-child', { xPercent: -2.6, ease: 'none', duration: .66 }, 'depth')
-        .to('.hero-statement-line:last-child', { xPercent: 1.5, ease: 'none', duration: .66 }, 'depth')
-        .to('.hero-kicker', { y: -84, opacity: .12, ease: 'none', duration: .56 }, 'depth')
-        .to('.hero-introduction p:first-child', { y: -30, xPercent: -2, opacity: .46, ease: 'none', duration: .64 }, 'depth+=.02')
-        .to('.hero-introduction p:last-child', { y: -78, xPercent: 2, scale: .96, opacity: .22, transformOrigin: 'right bottom', ease: 'none', duration: .68 }, 'depth')
-        .to('.hero-signature', { y: -52, opacity: .28, ease: 'none', duration: .62 }, 'depth+=.04')
-        .to('.hero-baseline', { y: 18, opacity: .18, ease: 'none', duration: .64 }, 'depth')
-        .to('.hero-grid', { yPercent: -2, scaleX: .985, opacity: .58, transformOrigin: 'center', ease: 'none', duration: .72 }, 'depth')
-        .to('.hero-field', { opacity: .26, scale: 1.025, ease: 'none', duration: .72 }, 'depth')
-        .to('.hero-marker', { x: () => -innerWidth * .22, y: () => innerHeight * .18, rotate: 142, scale: .58, ease: 'none', duration: .76 }, 'depth+=.04')
-        .to('.hero-marker i', { scale: 1.55, ease: 'none', duration: .76 }, 'depth+=.04')
-        .addLabel('handoff', .62)
-        .to('.hero-sticky', { scale: .955, yPercent: -1.8, borderRadius: '0 0 34px 34px', boxShadow: '0 24px 70px rgba(25,26,30,.12)', transformOrigin: 'center bottom', ease: 'none', duration: .38 }, 'handoff')
-        .to('.hero-statement, .hero-kicker, .hero-introduction, .hero-signature, .hero-baseline, .hero-marker', { opacity: 0, yPercent: -7, ease: 'none', duration: .3 }, 'handoff+=.08')
-        .to('.hero-grid, .hero-field', { opacity: 0, ease: 'none', duration: .28 }, 'handoff+=.08');
-
-      if (handoff) {
-        timeline.fromTo(handoff,
-          { y: 105, opacity: .12 },
-          { y: 0, opacity: 1, ease: 'none', duration: .28 },
-          'handoff+=.08');
-      }
-    }, section);
-    return () => {
-      ctx.revert();
-      if (handoff) gsap.set(handoff, { clearProps: 'transform,opacity' });
-    };
-  }, [paused]);
-
-  return (
-    <section className="hero" id="top" ref={sectionRef} aria-label="Arthur，Go 后端开发" data-motion-section>
-      <div className="hero-sticky">
-        <DotField paused={paused} />
-        <div className="hero-grid" aria-hidden="true"><span /><span /><span /></div>
-        <div className="hero-kicker hero-animate hero-opening-target"><span>01 / SELECTED PRACTICE</span><span>GO BACKEND · CLOUD COMPUTING</span><span>Ma’anshan, China</span></div>
-        <h1 className="hero-statement hero-animate hero-opening-target">
-          <span className="hero-statement-line">Engineering</span>
-          <span className="hero-statement-line"><i>systems</i> that hold.</span>
-        </h1>
-        <span className="hero-marker hero-animate hero-opening-target" aria-hidden="true"><i /></span>
-        <div className="hero-introduction hero-animate hero-opening-target">
-          <p>让请求有路径，<br />让失败有退路。</p>
-          <p>专注 Go 后端与云计算，关注请求如何流转、数据如何保持一致，以及系统在压力和失败中如何保持清晰。</p>
-        </div>
-        <div className="hero-signature hero-animate hero-opening-target"><span>Arthur</span><small>宋文清 / Backend Developer</small></div>
-        <div className="hero-baseline hero-animate hero-opening-target">
-          <span>PORTFOLIO — 2026</span>
-          <a className="text-link" href="#intro">Explore my work <span aria-hidden="true">↓</span></a>
-          <button type="button" onClick={toggleMotion} aria-pressed={motionDisabled} disabled={reduced}>{reduced ? '系统减少动效' : motionDisabled ? '开启动效　▷' : '暂停动效　Ⅱ'}</button>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 function App() {
+  const reviewStill = new URLSearchParams(location.search).get('hero-review') === 'still';
   const reduced = useReducedMotion();
   const compact = useCompactMotion();
   const [motionPaused, setMotionPaused] = useState(reduced);
-  const disabled = reduced || motionPaused;
+  const disabled = reduced || motionPaused || reviewStill;
   const complexMotionDisabled = disabled || compact;
 
   const [showJobsModal, setShowJobsModal] = useState(false);
@@ -400,15 +237,16 @@ function App() {
 
   return (
     <>
-      <Opening reduced={reduced} onComplete={handleOpeningComplete} />
+      <Opening reduced={reduced || reviewStill} onComplete={handleOpeningComplete} />
       <a className="skip-link" href="#work">跳至项目</a>
-      <header className="site-header">
-        <a className="brand" href="#top" aria-label="Arthur，返回首页"><span>©</span> Arthur</a>
-        <nav aria-label="主导航">{[['work', 'Work'], ['about', 'About'], ['contact', 'Contact']].map(([id, label]) => <a href={`#${id}`} key={id}><span className="nav-label"><span>{label}</span><span aria-hidden="true">{label}</span></span></a>)}</nav>
+      <header className="site-header restored-site-header">
+        <a className="brand" href="#top" aria-label="Arthur，返回首页"><span className="restored-brand-mark" aria-hidden="true" />ARTHUR / 27</a>
+        <nav aria-label="主导航">{[['top', 'Index'], ['work', 'Work'], ['about', 'About'], ['contact', 'Contact']].map(([id, label]) => <a href={`#${id}`} key={id}>{label}</a>)}</nav>
+        <span className="restored-availability">Graduating · 2027</span>
       </header>
       <SiteDetails disabled={disabled} compact={compact} />
       <main>
-        <Hero paused={complexMotionDisabled} motionDisabled={disabled} reduced={reduced} toggleMotion={() => setMotionPaused(value => !value)} />
+        <FirstHero paused={complexMotionDisabled} motionDisabled={disabled} reduced={reduced} toggleMotion={() => setMotionPaused(value => !value)} />
 
         <section className="intro section-shell" id="intro" data-motion-section>
           <div className="intro-title">
