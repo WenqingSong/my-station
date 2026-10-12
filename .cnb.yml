@@ -67,7 +67,7 @@ main:
           imports:
             - https://cnb.cool/framework-station/my-station-password/-/blob/main/github-mirror.yml
           script: |
-            set -euo pipefail
+            set -eu
 
             printf 'machine github.com\nlogin %s\npassword %s\n' \
               "${GITHUB_USERNAME}" "${GITHUB_TOKEN}" > "${HOME}/.netrc"
