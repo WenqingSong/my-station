@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import AnimatedContent from './components/AnimatedContent';
@@ -8,7 +8,7 @@ import AboutEditorial from './components/AboutEditorial';
 import SiteDetails from './components/SiteDetails';
 import FirstHero from './components/FirstHero';
 import JobsModal from './components/JobsModal';
-import { useModalFocus } from './useModalFocus';
+import Opening from './components/Opening';
 import { useCompactMotion, useMotionInfrastructure } from './motion';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -64,23 +64,6 @@ const projects = [
   }
 ];
 
-const greetings = [
-  { text: '你好', locale: 'zh-CN', label: 'Mandarin' },
-  { text: 'Hello', locale: 'en', label: 'English' },
-  { text: 'Bonjour', locale: 'fr', label: 'Français' },
-  { text: 'Hola', locale: 'es', label: 'Español' },
-  { text: 'Ciao', locale: 'it', label: 'Italiano' },
-  { text: 'Hallo', locale: 'de', label: 'Deutsch' },
-  { text: 'Olá', locale: 'pt', label: 'Português' },
-  { text: 'こんにちは', locale: 'ja', label: '日本語' },
-  { text: '안녕하세요', locale: 'ko', label: '한국어' },
-  { text: 'مرحباً', locale: 'ar', label: 'العربية' },
-  { text: 'नमस्ते', locale: 'hi', label: 'हिन्दी' },
-  { text: 'Привет', locale: 'ru', label: 'Русский' },
-  { text: 'Merhaba', locale: 'tr', label: 'Türkçe' },
-  { text: 'Sawubona', locale: 'zu', label: 'isiZulu' }
-];
-
 type EntryIntent = 'offer' | 'jobs';
 
 // Offer 捕手入口：仅识别明确的 entry=offer 查询参数，或旧 /jobs 路径（独立开发降级）。
@@ -120,132 +103,6 @@ function useReducedMotion() {
   }, []);
   return reduced;
 }
-
-type OpeningProps = {
-  reduced: boolean;
-  onComplete?: () => void;
-};
-
-function Opening({ reduced, onComplete }: OpeningProps) {
-  const [visible, setVisible] = useState(() => !reduced && (!location.hash || location.hash === '#top'));
-  const rootRef = useRef<HTMLDivElement>(null);
-  const timeline = useRef<gsap.core.Timeline | null>(null);
-  const completed = useRef(false);
-
-  const finish = useCallback(() => {
-    if (completed.current) return;
-    completed.current = true;
-    document.documentElement.classList.remove('intro-locked');
-    gsap.set(document.querySelectorAll('.hero-opening-target'), { clearProps: 'transform,opacity' });
-    setVisible(false);
-    onComplete?.();
-  }, [onComplete]);
-
-  const skip = useCallback(() => {
-    timeline.current?.kill();
-    finish();
-  }, [finish]);
-
-  useModalFocus(rootRef, visible && !reduced, skip);
-
-  useLayoutEffect(() => {
-    if (!visible || !rootRef.current) {
-      finish();
-      return;
-    }
-    if (reduced) {
-      finish();
-      return;
-    }
-    document.documentElement.classList.add('intro-locked');
-    let cancelled = false;
-    let begun = false;
-    let context: gsap.Context | undefined;
-    const begin = () => {
-      if (cancelled || begun || !rootRef.current) return;
-      begun = true;
-      const heroTargets = document.querySelectorAll('.hero-opening-target');
-      gsap.set(heroTargets, { opacity: 0, y: 28 });
-      context = gsap.context(() => {
-        const sequence = gsap.timeline({ defaults: { ease: 'power3.out' }, onComplete: finish });
-        timeline.current = sequence;
-        sequence
-          .from('.opening-meta > *', { y: 14, opacity: 0, duration: .3, stagger: .04 })
-          .from('.opening-axis', { scaleX: 0, transformOrigin: 'center', duration: .34 }, '-=.2');
-
-        greetings.forEach((_, index) => {
-          const greeting = `.opening-greeting[data-index="${index}"]`;
-          const tick = `.opening-trace span:nth-child(${index + 1})`;
-          const enter = index === 0 ? .06 : index === greetings.length - 1 ? .05 : .035;
-          const hold = index === 0 ? .04 : index === greetings.length - 1 ? .05 : .02;
-          const leave = index === 0 ? .05 : index === greetings.length - 1 ? .045 : .04;
-          sequence
-            .set(greeting, { visibility: 'visible' })
-            .fromTo(greeting,
-              { clipPath: 'inset(0 100% 0 0)', scaleX: .58, xPercent: -3, transformOrigin: '50% 50%' },
-              { clipPath: 'inset(0 0% 0 0)', scaleX: 1.07, xPercent: 0, duration: enter, ease: 'power2.out' })
-            .to(greeting, { scaleX: .92, letterSpacing: '-.045em', duration: hold, ease: 'sine.inOut' })
-            .to(tick, { scaleX: 1, opacity: 1, duration: hold, ease: 'power2.out' }, '<')
-            .to(greeting, { clipPath: 'inset(0 0 0 100%)', xPercent: 3, duration: leave, ease: 'power2.in' })
-            .set(greeting, { visibility: 'hidden' });
-        });
-
-        sequence
-          .to('.opening-trace span', { scaleX: 0, transformOrigin: 'center', duration: .14, stagger: { each: .006, from: 'edges' }, ease: 'power3.in' })
-          .to('.opening-axis', { scaleX: .08, backgroundColor: '#3047ff', duration: .2, ease: 'power3.inOut' }, '<+.02')
-          .set('.opening-final', { visibility: 'visible' })
-          .fromTo('.opening-final',
-            { clipPath: 'inset(0 100% 0 0)', scaleX: .72, transformOrigin: '50% 50%' },
-            { clipPath: 'inset(0 0% 0 0)', scaleX: 1, duration: .48, ease: 'power4.out' })
-          .from('.opening-final-dot', { scale: 0, rotate: -120, duration: .4, ease: 'back.out(2.4)' }, '-=.3')
-          .to('.opening-meta, .opening-trace, .opening-final-name', { opacity: 0, y: -14, duration: .28, ease: 'power2.in' }, '+=.18')
-          .to('.opening-final-dot', { x: () => innerWidth * .105, y: () => innerHeight * .055, scale: .6, duration: .44, ease: 'power3.inOut' }, '-=.24')
-          .addLabel('curtain', '-=.05')
-          .to('.opening-panel-top', { yPercent: -101, duration: .78, ease: 'power4.inOut' }, 'curtain')
-          .to('.opening-panel-bottom', { yPercent: 101, duration: .78, ease: 'power4.inOut' }, 'curtain')
-          .to('.opening-final-dot', { opacity: 0, scale: .2, duration: .24, ease: 'power2.in' }, 'curtain+=.34')
-          .to(heroTargets, { opacity: 1, y: 0, duration: .58, stagger: .028, ease: 'power3.out' }, 'curtain+=.12');
-      }, rootRef);
-    };
-    const deadline = window.setTimeout(begin, 650);
-    document.fonts.ready.then(begin);
-    return () => {
-      cancelled = true;
-      clearTimeout(deadline);
-      timeline.current?.kill();
-      context?.revert();
-      gsap.set(document.querySelectorAll('.hero-opening-target'), { clearProps: 'transform,opacity' });
-      document.documentElement.classList.remove('intro-locked');
-    };
-  }, [finish, reduced, visible]);
-
-  if (!visible) return null;
-  return (
-    <div className="opening" ref={rootRef} role="dialog" aria-modal="true" aria-label="多语言问候开场，可跳过或按 Escape 关闭" data-lenis-prevent>
-      <div className="opening-panel opening-panel-top" aria-hidden="true" />
-      <div className="opening-panel opening-panel-bottom" aria-hidden="true" />
-      <button className="opening-skip" type="button" onClick={skip}>Skip intro</button>
-      <div className="opening-stage" aria-hidden="true">
-        <div className="opening-meta"><span>ARTHUR / PORTFOLIO</span><span>14 WAYS TO SAY HELLO</span><span>2026</span></div>
-        <span className="opening-axis" />
-        <div className="opening-greetings">
-          {greetings.map((greeting, index) => (
-            <div className="opening-greeting" data-index={index} lang={greeting.locale} key={greeting.locale}>
-              <strong>{greeting.text}</strong>
-              <small><span>{String(index + 1).padStart(2, '0')} / {greetings.length}</span><em>{greeting.label}</em></small>
-            </div>
-          ))}
-          <div className="opening-final"><span className="opening-final-name">Arthur</span><i className="opening-final-dot">.</i></div>
-        </div>
-        <div className="opening-trace">
-          {greetings.map(greeting => <span key={greeting.locale} />)}
-        </div>
-        <div className="opening-footer"><span>GO BACKEND</span><span>HELLO / WORLD</span><span>CLOUD COMPUTING</span></div>
-      </div>
-    </div>
-  );
-}
-
 
 function App() {
   const reviewStill = new URLSearchParams(location.search).get('hero-review') === 'still';
