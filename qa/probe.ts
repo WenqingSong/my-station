@@ -41,9 +41,11 @@ const frame = (now: number) => {
   const opening = document.querySelector<HTMLElement>('.opening');
   const signature = opening ? [opening.dataset.phase, opening.dataset.word, opening.dataset.font].join('/') : 'absent';
   if (signature !== lastOpening) {
-    const active = opening?.querySelector<SVGTextElement>('.opening-greeting[style*="visible"] .opening-word');
+    const activeMask = Array.from(opening?.querySelectorAll<HTMLElement>('.opening-greeting') || [])
+      .find(mask => mask.lang === opening?.dataset.locale);
+    const active = activeMask?.querySelector<SVGTextElement>('.opening-word');
     const box = active?.getBBox();
-    openingTrace.push({ at: Math.round(now - started), state: signature, text: active?.textContent,
+    openingTrace.push({ at: Math.round(now - started), state: signature, text: Array.from(activeMask?.querySelectorAll('.opening-word') || []).map(word => word.textContent).join(''),
       baseline: active?.getAttribute('y'), font: active ? getComputedStyle(active).fontFamily : undefined,
       glyphBox: box ? { x: box.x, y: box.y, width: box.width, height: box.height } : undefined });
     lastOpening = signature;

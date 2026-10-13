@@ -56,12 +56,12 @@ export default function AboutEditorial({ disabled, compact }: { disabled: boolea
         <p>中文名宋文清，在马鞍山学院读软件工程，预计 2027 年 7 月毕业。</p>
         <p>实习之后，我开始花更多时间读源码、听工程师的访谈，也写工程日记，记录遇到的问题、做过的判断，以及后来发现自己想错的地方。</p>
         <p>项目有 AI Agent 参与实现，我负责方案取舍、推进和验收。哪些实现该保留、哪里还需要测试，我需要自己判断。遇到问题，也要跟进到验证完成。</p>
-        <p>我长期关注腾讯，也喜欢腾讯云控制台和微信读书的设计。参加腾讯云训练营，是我接触新工具的一种方式。</p>
+        <p>我也会留意软件的界面和使用过程。信息怎么组织、操作是否顺手，都值得琢磨。这个网站也会随着我的学习和项目进展继续修改。</p>
       </div>
 
       <aside className="about-certification" aria-label="认证与训练营" data-reveal="content">
         <span className="certificate-mark" aria-hidden="true">[&nbsp;]</span>
-        <div><p>Alibaba Cloud <span>· ACP</span></p><span>Certified Professional · Cloud Computing</span><small>有效至 2027 年 10 月</small><small>腾讯云 CNB-Docker 训练营 · 优秀学员</small></div>
+        <div><p>Alibaba Cloud <span>· ACP</span></p><span>Certified Professional · Cloud Computing</span><small>有效至 2027 年 10 月</small><small>CNB-Docker 训练营 · 优秀学员</small></div>
       </aside>
 
       <p className="about-closing"><span className="about-closing-inner">Still becoming.</span></p>

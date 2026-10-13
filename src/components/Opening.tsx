@@ -1,32 +1,17 @@
-import { useCallback, useLayoutEffect, useRef, useState } from 'react';
-import { gsap } from 'gsap';
+import { useCallback, useId, useLayoutEffect, useRef, useState } from 'react';
+import type { gsap } from 'gsap';
 import { useModalFocus } from '../useModalFocus';
+import { GREETINGS, OPENING_MOTION, openingSchedule } from './opening-sequence';
+import { createOpeningTimeline } from './opening-timeline';
 import './opening.css';
-
-const SEEN_KEY = 'arthur:opening:v3';
-const REVISIT_WINDOW = 24 * 60 * 60 * 1000;
-const GREETINGS = [
-  { text: '你好', locale: 'zh-CN', script: 'cjk', hold: .54 },
-  { text: 'Hello', locale: 'en', script: 'latin', hold: .54 },
-  { text: 'Bonjour', locale: 'fr', script: 'latin', hold: .54 },
-  { text: 'こんにちは', locale: 'ja', script: 'cjk', hold: .60 }
-];
-
-function shouldPlay(reduced: boolean) {
-  if (reduced || (location.hash && location.hash !== '#top')) return false;
-  // An explicit replay link is useful for reviewing the opening without clearing browser data.
-  if (new URLSearchParams(location.search).get('intro') === 'replay') return true;
-  try {
-    const seen = Number(localStorage.getItem(SEEN_KEY));
-    return !seen || Date.now() - seen >= REVISIT_WINDOW || seen > Date.now();
-  } catch { return true; } // Private browsing/storage restrictions must not break entry.
-}
 
 type Props = { reduced: boolean; onComplete?: () => void };
 
 export default function Opening({ reduced, onComplete }: Props) {
-  const [visible, setVisible] = useState(() => shouldPlay(reduced));
-  const presented = useRef(visible);
+  // Play on every document load, including refreshes at a section anchor.
+  // Reduced motion remains an explicit accessibility exception.
+  const [visible, setVisible] = useState(() => !reduced);
+  const maskId = useId().replace(/:/g, '');
   const rootRef = useRef<HTMLDivElement>(null);
   const timeline = useRef<gsap.core.Timeline | null>(null);
   const completed = useRef(false);
@@ -37,9 +22,6 @@ export default function Opening({ reduced, onComplete }: Props) {
     timeline.current?.kill();
     timeline.current = null;
     document.documentElement.classList.remove('intro-locked');
-    if (presented.current) {
-      try { localStorage.setItem(SEEN_KEY, String(Date.now())); } catch { /* Optional preference only. */ }
-    }
     setVisible(false);
     onComplete?.();
   }, [onComplete]);
@@ -59,56 +41,74 @@ export default function Opening({ reduced, onComplete }: Props) {
       let ready: Promise<boolean>;
       try {
         ready = Promise.all([
-          document.fonts.load('500 100px OpeningLatin', 'HelloBonjour'),
-          document.fonts.load('500 100px OpeningCJK', '你好こんにちは')
+          document.fonts.load('500 100px OpeningLatin', GREETINGS.filter(word => word.script === 'latin').map(word => word.text).join('')),
+          document.fonts.load('500 100px OpeningCJK', GREETINGS.filter(word => word.script === 'cjk').map(word => word.text).join(''))
         ]).then(faces => faces.every(group => group.length > 0 && group.every(face => face.status === 'loaded')), () => false);
       } catch { ready = Promise.resolve(false); }
       const loaded = await Promise.race([
         ready,
-        new Promise<boolean>(resolve => { fontDeadline = window.setTimeout(() => resolve(false), 450); })
+        new Promise<boolean>(resolve => { fontDeadline = window.setTimeout(() => resolve(false), OPENING_MOTION.fontDeadlineMs); })
       ]);
       clearTimeout(fontDeadline);
       if (cancelled || completed.current) return;
       root.dataset.font = loaded ? 'custom' : 'system';
 
-      const words = root.querySelectorAll<SVGTextElement>('.opening-word');
+      const masks = Array.from(root.querySelectorAll<HTMLElement>('.opening-greeting'));
       const context = document.createElement('canvas').getContext('2d');
-      // Every word sits on the same SVG baseline. Match cap/ideograph ascent, not
-      // the font's line box, which differs considerably between Latin and CJK.
-      words.forEach(word => {
-        if (!context) return;
-        context.font = '500 100px ' + getComputedStyle(word).fontFamily;
-        const ascent = context.measureText(word.textContent || '').actualBoundingBoxAscent;
-        if (ascent > 0) word.setAttribute('font-size', String(Math.min(150, Math.max(70, 7200 / ascent))));
+      // Measure real glyphs, then place each letter on one common baseline.
+      // No horizontal scaling, animated tracking, or synthetic font blur.
+      const widths = masks.map((mask, index) => {
+        const text = GREETINGS[index].text;
+        const letters = Array.from(mask.querySelectorAll<SVGTextElement>('.opening-word'));
+        if (!context || !letters.length) return 0;
+        const family = getComputedStyle(letters[0]).fontFamily;
+        context.font = '500 100px ' + family;
+        const ascent = context.measureText(text).actualBoundingBoxAscent || 80;
+        let size = Math.min(150, Math.max(70, 8000 / ascent));
+        context.font = `500 ${size}px ${family}`;
+        const measured = context.measureText(text).width;
+        // Leave a real gutter for the moving dot, including fallback fonts.
+        if (measured > 620) { size *= 620 / measured; context.font = `500 ${size}px ${family}`; }
+        const width = context.measureText(text).width;
+        let prefix = '';
+        letters.forEach(letter => {
+          // The difference accounts for pair kerning at the current boundary.
+          const value = letter.textContent || '';
+          const offset = context.measureText(prefix + value).width - context.measureText(value).width;
+          letter.setAttribute('font-size', String(size));
+          letter.setAttribute('x', String(400 - width / 2 + offset));
+          prefix += value;
+        });
+        return width;
       });
 
-      const sequence = gsap.timeline({ defaults: { ease: 'power3.out' }, onComplete: finish });
-      timeline.current = sequence;
-      GREETINGS.forEach((greeting, index) => {
-        const mask = root.querySelectorAll<HTMLElement>('.opening-greeting')[index];
-        sequence
-          .call(() => { root.dataset.phase = 'enter'; root.dataset.word = greeting.text; })
-          .set(mask, { visibility: 'visible' })
-          .fromTo(mask, { y: 12, opacity: 1, clipPath: 'inset(100% 0 0 0)' },
-            { y: 0, clipPath: 'inset(0% 0 0 0)', duration: .16 })
-          .call(() => { root.dataset.phase = 'hold'; })
-          .to(mask, { duration: greeting.hold })
-          .call(() => { root.dataset.phase = 'leave'; })
-          .to(mask, { y: -12, clipPath: 'inset(0 0 100% 0)', duration: .12, ease: 'power2.in' })
-          .set(mask, { visibility: 'hidden' });
+      // If text measurement is unavailable, entering the site is more useful
+      // than rendering overlapped letters or leaving a blocked black screen.
+      if (widths.some(width => !Number.isFinite(width) || width <= 0)) { finish(); return; }
+
+      timeline.current = createOpeningTimeline({
+        masks,
+        glyphs: masks.map(mask => Array.from(mask.querySelectorAll<SVGElement>('.opening-glyph'))),
+        widths,
+        dot: root.querySelector<SVGCircleElement>('.opening-dot')!,
+        panel: root.querySelector<HTMLElement>('.opening-panel')!,
+        skip: root.querySelector<HTMLElement>('.opening-skip')!,
+        motion: OPENING_MOTION,
+        schedule: openingSchedule(),
+        onPhase: (phase, index) => {
+          root.dataset.phase = phase;
+          root.dataset.word = GREETINGS[index].text;
+          root.dataset.locale = GREETINGS[index].locale;
+        },
+        onComplete: finish
       });
-      // One curtain; the already-composed Hero underneath remains untouched.
-      const curtainAt = sequence.duration() - .12;
-      sequence
-        .call(() => { root.dataset.phase = 'curtain'; }, [], curtainAt)
-        .to(root.querySelector('.opening-panel'), { yPercent: -101, duration: .64, ease: 'power3.inOut' }, curtainAt)
-        .to(root.querySelector('.opening-skip'), { opacity: 0, duration: .15 }, curtainAt);
+      timeline.current.play();
     };
-    void start();
+    void start().catch(finish);
     const visibility = () => { if (document.hidden) finish(); };
     document.addEventListener('visibilitychange', visibility);
     // Escape hatch for a suspended/failed animation ticker, not the designed duration.
-    const safetyDeadline = window.setTimeout(finish, 6500);
+    const safetyDeadline = window.setTimeout(finish, OPENING_MOTION.safetyDeadlineMs);
     return () => {
       cancelled = true;
       clearTimeout(fontDeadline);
@@ -124,15 +124,25 @@ export default function Opening({ reduced, onComplete }: Props) {
   return <div className="opening" ref={rootRef} role="dialog" aria-modal="true"
     aria-label="欢迎来到 Arthur 的网站" aria-describedby="opening-description"
     data-phase="loading" data-font="pending" data-lenis-prevent>
-    <p className="opening-sr-only" id="opening-description">四种语言的问候。可以跳过或按 Escape 直接进入首页。</p>
+    <p className="opening-sr-only" id="opening-description">八种语言的问候，从你好到 Hello。可以跳过或按 Escape 直接进入网站。</p>
     <div className="opening-panel" aria-hidden="true" />
     <button className="opening-skip" type="button" onClick={finish}>跳过开场 <span aria-hidden="true">↗</span></button>
     <div className="opening-stage" aria-hidden="true">
-      {GREETINGS.map(greeting => <div className="opening-greeting" data-script={greeting.script} key={greeting.locale} lang={greeting.locale}>
-        <svg viewBox="0 0 800 180" focusable="false">
-          <text className="opening-word" x="400" y="124" textAnchor="middle" fontSize="100">{greeting.text}</text>
+      <div className="opening-lockup">
+        {GREETINGS.map((greeting, index) => <div className="opening-greeting" data-script={greeting.script} key={greeting.locale} lang={greeting.locale}>
+          <svg viewBox="0 0 800 180" focusable="false">
+            <defs><clipPath id={`${maskId}-${index}`}><rect x="0" y="16" width="800" height="160" /></clipPath></defs>
+            <g clipPath={`url(#${maskId}-${index})`}>
+              {Array.from(greeting.text).map((letter, letterIndex) => <g className="opening-glyph" key={letterIndex}>
+                <text className="opening-word" x="400" y="130" fontSize="100">{letter}</text>
+              </g>)}
+            </g>
+          </svg>
+        </div>)}
+        <svg className="opening-accent" viewBox="0 0 800 180" focusable="false">
+          <circle className="opening-dot" cx="400" cy="94" r="6" />
         </svg>
-      </div>)}
+      </div>
     </div>
   </div>;
 }
