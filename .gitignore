@@ -3,6 +3,7 @@ node_modules/
 vite.config.js
 vite.config.d.ts
 dist/
+dist-study/
 .DS_Store
 .env
 .env.*
