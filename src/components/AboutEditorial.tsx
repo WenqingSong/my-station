@@ -1,73 +1,33 @@
-import { useLayoutEffect, useRef } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { MOTION } from '../motion';
 import './about-editorial.css';
 
-export default function AboutEditorial({ disabled, compact }: { disabled: boolean; compact: boolean }) {
-  const rootRef = useRef<HTMLElement>(null);
-  useLayoutEffect(() => {
-    const root = rootRef.current;
-    if (!root || disabled) return;
-    const context = gsap.context(() => {
-      const image = root.querySelector('.portrait-window');
-      // Move the clipping edge, never soften or scale the portrait pixels.
-      gsap.fromTo(image, { clipPath: 'inset(0% 0% 100% 0%)' }, {
-        clipPath: 'inset(0% 0% 0% 0%)',
-        ease: compact ? MOTION.ease.reveal : 'none', duration: .95,
-        scrollTrigger: compact
-          ? { trigger: image, start: 'top 86%', once: true }
-          : { trigger: image, start: 'top 90%', end: 'top 30%', scrub: .55 }
-      });
-      if (!compact) {
-        gsap.fromTo('.about-closing-inner', { xPercent: 3.5 }, {
-          xPercent: 0, ease: 'none',
-          scrollTrigger: { trigger: '.about-closing', start: 'top bottom', end: 'top 45%', scrub: .7 }
-        });
-      }
-    }, root);
-    let alive = true;
-    document.fonts.ready.then(() => { if (alive) ScrollTrigger.refresh(); });
-    return () => { alive = false; context.revert(); };
-  }, [disabled, compact]);
-
-  return <section className={`about-editorial section-shell ${disabled ? 'about-still' : ''}`} id="about" ref={rootRef} aria-labelledby="about-title" data-motion-section>
-    <div className="about-masthead"><p>THE PERSON BEHIND THE CODE</p><span>ARTHUR / A PERSONAL NOTE</span></div>
+export default function AboutEditorial() {
+  return <section className="about-editorial about-note section-shell" id="about" aria-labelledby="about-title">
+    <span id="skills" className="legacy-section-anchor" aria-hidden="true" />
+    <div className="about-masthead"><p>02 / A PERSONAL NOTE</p><span>MA’ANSHAN, CHINA</span></div>
     <div className="about-spread">
-      <h2 className="about-title" id="about-title" data-reveal="text"><span className="reveal-line"><span className="reveal-line-inner">Always curious<span className="about-period">.</span></span></span></h2>
-
-      <p className="about-margin-note">Based in<br />Ma’anshan,<br />China.</p>
-
+      <h2 className="about-title" id="about-title">Hi, I’m Arthur<span className="about-period">.</span></h2>
+      <p className="about-margin-note">宋文清<br />软件工程本科在读<br />预计 2027 年 7 月毕业</p>
       <figure className="about-portrait">
         <picture className="portrait-window">
-          <source type="image/webp" srcSet="/arthur-editorial-640.webp 640w, /arthur-editorial-960.webp 960w, /arthur-editorial-1440.webp 1440w, /arthur-editorial-2160.webp 2160w" sizes="(max-width: 620px) 72vw, (max-width: 900px) 42vw, (min-width: 1600px) 440px, 32vw" />
-          <img src="/arthur-editorial-960.jpg"
-            srcSet="/arthur-editorial-640.jpg 640w, /arthur-editorial-960.jpg 960w, /arthur-editorial-1440.jpg 1440w, /arthur-editorial-2160.jpg 2160w"
-            sizes="(max-width: 620px) 72vw, (max-width: 900px) 42vw, (min-width: 1600px) 440px, 32vw"
-            width="960" height="1440" loading="lazy" decoding="async"
-            alt="Arthur 身着深色西装，站在深蓝色背景前" />
+          <source type="image/webp" srcSet="/arthur-editorial-640.webp 640w, /arthur-editorial-960.webp 960w, /arthur-editorial-1440.webp 1440w, /arthur-editorial-2160.webp 2160w" sizes="(max-width: 620px) 72vw, (max-width: 900px) 42vw, 32vw" />
+          <img src="/arthur-editorial-960.jpg" srcSet="/arthur-editorial-640.jpg 640w, /arthur-editorial-960.jpg 960w, /arthur-editorial-1440.jpg 1440w, /arthur-editorial-2160.jpg 2160w" sizes="(max-width: 620px) 72vw, (max-width: 900px) 42vw, 32vw"
+            width="960" height="1440" loading="lazy" decoding="async" alt="Arthur 身着深色西装，站在深蓝色背景前" />
         </picture>
-        <figcaption><span>Arthur</span><span>宋文清</span></figcaption>
+        <figcaption><span>Arthur / 宋文清</span><span>PORTRAIT</span></figcaption>
       </figure>
-
-      <div className="about-narrative" data-reveal="content">
-        <p className="about-small-label">A LITTLE ABOUT ME</p>
-        <h3>Hi, I’m Arthur.</h3>
-        <p>中文名宋文清，在马鞍山学院读软件工程，预计 2027 年 7 月毕业。</p>
-        <p>实习之后，我开始花更多时间读源码、听工程师的访谈，也写工程日记，记录遇到的问题、做过的判断，以及后来发现自己想错的地方。</p>
-        <p>项目有 AI Agent 参与实现，我负责方案取舍、推进和验收。哪些实现该保留、哪里还需要测试，我需要自己判断。遇到问题，也要跟进到验证完成。</p>
-        <p>我也会留意软件的界面和使用过程。信息怎么组织、操作是否顺手，都值得琢磨。这个网站也会随着我的学习和项目进展继续修改。</p>
+      <div className="about-narrative">
+        <p className="about-lead">在马鞍山学院读软件工程。<br />现在主要写 Go，也在继续学习云计算。</p>
+        <p>实习之后，我开始写工程日记：记录问题、当时的判断，以及后来发现自己想错的地方。也会读源码、听工程师的访谈，补上自己还不了解的东西。</p>
+        <p>AI Agent 帮我实现和验证，但方案取舍、验收和后续维护，仍然是我要负责的事。</p>
+        <div className="about-experience">
+          <p className="about-small-label">一次团队开发经历 / 2026.07—08</p>
+          <h3>Go 后端开发实习</h3>
+          <p>杭州智航星辰人工智能科技有限公司</p>
+          <p>参与企业课程平台开发，跟进 AI 客服系统的问题定位、修复和联调。</p>
+        </div>
       </div>
-
-      <aside className="about-certification" aria-label="认证与训练营" data-reveal="content">
-        <span className="certificate-mark" aria-hidden="true">[&nbsp;]</span>
-        <div><p>Alibaba Cloud <span>· ACP</span></p><span>Certified Professional · Cloud Computing</span><small>有效至 2027 年 10 月</small><small>CNB-Docker 训练营 · 优秀学员</small></div>
-      </aside>
-
-      <p className="about-closing"><span className="about-closing-inner">Still becoming.</span></p>
-
-      <div className="about-offclock" data-reveal="content">
-        <div className="about-offclock-intro"><p className="about-small-label">OFF THE CLOCK</p><p>不写代码的时候，我喜欢骑行、打网球，也经常看影视剧。</p></div>
+      <div className="about-offclock">
+        <div className="about-offclock-intro"><p className="about-small-label">OFF THE CLOCK</p><p>关上电脑以后。</p></div>
         <ul className="about-pursuits">
           <li><span className="pursuit-mark mark-cycling" aria-hidden="true" /><div><span>Cycling</span><small>骑行</small></div></li>
           <li><span className="pursuit-mark mark-tennis" aria-hidden="true" /><div><span>Tennis</span><small>网球</small></div></li>

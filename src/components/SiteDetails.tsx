@@ -1,9 +1,8 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { gsap } from 'gsap';
+import { useEffect, useRef, useState } from 'react';
 
 const chapters = [
-  ['top', '01', 'Home'], ['intro', '02', 'Introduction'], ['work', '03', 'Selected work'],
-  ['skills', '04', 'Foundation'], ['about', '05', 'About Arthur'], ['contact', '06', 'Contact']
+  ['top', '00', 'Home'], ['work', '01', 'Selected work'],
+  ['about', '02', 'About Arthur'], ['contact', '03', 'Contact']
 ];
 
 export default function SiteDetails({ disabled, compact }: { disabled: boolean; compact: boolean }) {
@@ -30,7 +29,7 @@ export default function SiteDetails({ disabled, compact }: { disabled: boolean; 
       for (const item of chapters) {
         if ((document.getElementById(item[0])?.getBoundingClientRect().top ?? Infinity) <= innerHeight * .38) current = item;
       }
-      if (progress > .995) current = chapters[5];
+      if (progress > .995) current = chapters[chapters.length - 1];
       setChapter(previous => previous === current ? previous : current);
       document.querySelectorAll('.site-header nav a').forEach(link => {
         const active = link.getAttribute('href') === `#${current[0]}`;
@@ -97,16 +96,6 @@ export default function SiteDetails({ disabled, compact }: { disabled: boolean; 
     addEventListener('scroll', hide, { passive: true });
     return () => { hide(); document.removeEventListener('pointermove', move); document.removeEventListener('pointerleave', hide); removeEventListener('blur', hide); removeEventListener('scroll', hide); };
   }, [compact, disabled]);
-
-  useLayoutEffect(() => {
-    if (disabled) return;
-    const context = gsap.context(() => {
-      gsap.fromTo('.contact-rule-line', { scaleX: .12 }, { scaleX: 1, duration: 1.1, ease: 'power3.inOut', scrollTrigger: { trigger: '.contact-rule', start: 'top 90%', once: true } });
-      gsap.fromTo('.contact-signoff-word', { yPercent: 108 }, { yPercent: 0, duration: 1.15, ease: 'power4.out', scrollTrigger: { trigger: '.contact-signoff', start: 'top 96%', once: true } });
-      if (!compact) gsap.fromTo('.contact-arrival-mark', { rotate: -65 }, { rotate: 0, ease: 'none', scrollTrigger: { trigger: '#contact', start: 'top bottom', end: 'top 15%', scrub: .8 } });
-    });
-    return () => context.revert();
-  }, [disabled, compact]);
 
   return <>
     <div className="reading-progress" role="progressbar" aria-label="页面阅读进度" aria-valuemin={0} aria-valuemax={100} aria-valuenow={0} ref={progressRef}><span /></div>

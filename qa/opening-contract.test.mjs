@@ -83,8 +83,9 @@ test('source contract: refresh is unconditional except reduced motion, with no v
   assert.match(source('src/components/opening.css'), /prefers-reduced-motion:reduce/);
 });
 
-test('source contract: About is employer-neutral and retains the factual training entry', () => {
+test('source contract: About is employer-neutral and retains truthful authorship', () => {
   const about = source('src/components/AboutEditorial.tsx');
   assert.doesNotMatch(about, /腾讯|Tencent|微信读书/);
-  assert.match(about, /CNB-Docker 训练营 · 优秀学员/);
+  assert.match(about, /AI Agent/);
+  assert.match(about, /方案取舍、验收和后续维护/);
 });

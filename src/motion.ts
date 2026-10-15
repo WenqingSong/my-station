@@ -40,7 +40,7 @@ type MotionInfrastructureOptions = {
 // Sticky rectangles describe the currently pinned position, not the anchor's
 // original place in the document. Resolve scenes from their flow siblings.
 function anchorTop(target: HTMLElement) {
-  if (target.matches('.work-scene') && target.parentElement) {
+  if (target.matches('.work-scene') && target.parentElement && getComputedStyle(target).position === 'sticky') {
     let top = scrollY + target.parentElement.getBoundingClientRect().top;
     for (const sibling of Array.from(target.parentElement.children)) {
       if (sibling === target) break;
@@ -71,8 +71,15 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
     const update = (time: number) => lenis?.raf(time * 1000);
     const unsubscribe = lenis?.on('scroll', ScrollTrigger.update);
     let locked = false;
+    let openingWasLocked = document.documentElement.classList.contains('intro-locked');
+    let restoreFrame = 0;
     const syncLock = () => {
-      const next = document.hidden || document.documentElement.classList.contains('intro-locked') || document.documentElement.classList.contains('jobs-modal-open');
+      const openingLocked = document.documentElement.classList.contains('intro-locked');
+      if (openingWasLocked && !openingLocked && location.hash) {
+        restoreFrame = requestAnimationFrame(() => { ScrollTrigger.refresh(); restoreHash(); });
+      }
+      openingWasLocked = openingLocked;
+      const next = document.hidden || openingLocked || document.documentElement.classList.contains('jobs-modal-open');
       if (next === locked) return;
       locked = next;
       if (locked) lenis?.stop(); else lenis?.start();
@@ -103,7 +110,7 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
     const revealFocusedScene = (event: FocusEvent) => {
       const control = event.target as HTMLElement;
       const scene = control.closest<HTMLElement>('.work-scene');
-      if (!scene || control === scene || compact || disabled) return;
+      if (!scene || control === scene || compact || disabled || getComputedStyle(scene).position !== 'sticky') return;
       const rect = control.getBoundingClientRect();
       const hit = document.elementFromPoint(rect.left + rect.width / 2, Math.min(innerHeight - 1, Math.max(0, rect.top + rect.height / 2)));
       if (rect.top >= 76 && rect.bottom <= innerHeight && hit && scene.contains(hit)) return;
@@ -136,6 +143,7 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       document.removeEventListener('click', navigate);
       document.removeEventListener('focusin', revealFocusedScene);
       alive = false;
+      cancelAnimationFrame(restoreFrame);
       clearTimeout(hashDeadline);
       removeEventListener('popstate', restoreHash);
       removeEventListener('hashchange', restoreHash);
