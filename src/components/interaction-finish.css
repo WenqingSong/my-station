@@ -1,6 +1,7 @@
 /* State refinements only: no new motion, section layout, or visual theme. */
 :root{--control-duration:180ms;--control-ease:cubic-bezier(.22,1,.36,1)}
 .title-ending{white-space:nowrap}
+.work-prologue h2>.title-ending{color:inherit}
 /* Sections receive programmatic focus for keyboard continuity, not an
    oversized interactive focus ring. All actual controls keep theirs. */
 main :is(section,article)[tabindex="-1"]:focus{outline:none}
