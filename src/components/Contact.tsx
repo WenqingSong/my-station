@@ -23,7 +23,7 @@ export default function Contact({ disabled, reduced, toggleMotion }: { disabled:
   return <section className="contact contact-finale" id="contact" aria-labelledby="contact-title">
     <div className="section-shell">
       <div className="contact-topline"><p className="eyebrow">03 / CONTACT</p><a className="finale-back" href="#top">返回顶部 <span aria-hidden="true">↑</span></a></div>
-      <div className="finale-heading"><h2 id="contact-title">Let’s talk<span>.</span></h2><p>聊聊项目、工作机会，<br />或告诉我网站哪里需要改进。</p></div>
+      <div className="finale-heading"><h2 id="contact-title">Let’s <span className="title-ending">talk<span className="finale-period">.</span></span></h2><p>聊聊项目、工作机会，<br />或告诉我网站哪里需要改进。</p></div>
       <div className="finale-email-row">
         <a className="finale-email" href={`mailto:${CONTACT_EMAIL}`} aria-label={`发送邮件至 ${CONTACT_EMAIL}`}>{CONTACT_EMAIL}<span aria-hidden="true">↗</span></a>
         <button className="copy-email" type="button" onClick={copy} disabled={copyState === 'pending'} aria-describedby="copy-feedback"><span>{copyState === 'copied' ? '已复制' : copyState === 'pending' ? '正在复制…' : '复制邮箱'}</span><span aria-hidden="true">{copyState === 'copied' ? '✓' : '⧉'}</span></button>

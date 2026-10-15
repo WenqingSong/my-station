@@ -1,11 +1,11 @@
 /* Readable first: this layer is scoped below the unchanged Hero. */
-@font-face{font-family:LowerPageSC;src:url('/fonts/lower-page-sc.woff2') format('woff2');font-weight:100 900;font-display:swap}
+@font-face{font-family:LowerPageSC;src:url('/fonts/lower-page-sc.woff2') format('woff2');font-weight:100 900;font-display:optional}
 .lower-work,.about-note,.contact-finale{font-family:Instrument,LowerPageSC,"PingFang SC","Microsoft YaHei",sans-serif}
 .legacy-section-anchor{position:absolute;top:0;left:0;width:1px;height:1px;pointer-events:none}
 .lower-work .work-prologue{background:#e9e9e5;color:#202126;padding-top:90px;padding-bottom:62px;border-top:1px solid #c7c8c1}
 .lower-work .work-prologue .eyebrow{color:#62645d;font-size:11px;letter-spacing:.13em;margin-bottom:28px}
 .lower-work .work-prologue h2{font-size:clamp(30px,3.4vw,56px);letter-spacing:-.035em;line-height:1.3;margin-bottom:24px;font-weight:500}
-.lower-work .work-prologue h2>span{color:#3047ff}
+.lower-work .work-prologue .title-period{color:#3047ff}
 .lower-work .work-prologue>div p{font-size:16px;color:#62645d;line-height:1.8}
 .lower-work .work-prologue>div>span{font-size:12px;color:#62645d;letter-spacing:.02em;flex-shrink:0}
 .lower-work .work-scene{position:relative;top:auto;min-height:0;margin:0;padding-top:44px;padding-bottom:40px;overflow:clip}
@@ -45,7 +45,7 @@
 .lower-work .scene-matching .scene-layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 .work-coda{display:flex;align-items:center;justify-content:space-between;gap:30px;padding-top:34px;padding-bottom:34px;color:#c4bfce;border-top:1px solid #4c465b;background:#21202a;font-size:13px;line-height:1.8}
 .work-coda p{margin:0}.work-coda a{min-height:44px;display:inline-flex;align-items:center;gap:26px;white-space:nowrap;color:#f4f1fb}
-.lower-work a:focus-visible,.about-note a:focus-visible,.contact-finale a:focus-visible,.contact-finale button:focus-visible,.manual-copy input:focus-visible{outline:2px solid currentColor;outline-offset:6px;border-radius:1px}
+.lower-work a:focus-visible,.about-note a:focus-visible,.contact-finale a:focus-visible,.contact-finale button:focus-visible,.manual-copy input:focus-visible{outline:2px solid currentColor;outline-offset:5px}
 .lower-work a:active,.contact-finale a:active{opacity:.7}
 
 .about-note{padding-top:78px;padding-bottom:90px}
@@ -73,7 +73,7 @@
 .finale-back>span{font-size:22px;transition:transform .3s}.finale-back:hover>span{transform:translateY(-4px)}
 .finale-heading{display:grid;grid-template-columns:1.4fr 1fr;gap:6vw;align-items:end;padding-bottom:48px}
 .contact-finale h2{font-size:clamp(72px,11.5vw,185px);line-height:1.05;letter-spacing:-.065em;white-space:nowrap}
-.contact-finale h2>span{color:#8e9aff}
+.contact-finale .finale-period{color:#8e9aff}
 .finale-heading p{font-size:clamp(16px,1.5vw,22px);line-height:1.9;margin:0 0 10px;color:#b6b7b2;justify-self:end}
 .finale-email-row{display:flex;align-items:center;justify-content:space-between;gap:24px;border-top:1px solid #4b4c4e;border-bottom:1px solid #4b4c4e;padding:25px 0}
 .finale-email{font-size:clamp(25px,4.4vw,66px);letter-spacing:-.035em;display:inline-flex;align-items:center;gap:30px;line-height:1.3;min-height:44px}
@@ -94,6 +94,7 @@
   .lower-work .scene-art-crop{aspect-ratio:.92}.lower-work .scene-matching .scene-art-crop{aspect-ratio:1.05}
   .lower-work .work-prologue>div{align-items:start;flex-direction:column;gap:12px}
   .about-note .about-portrait{grid-column:1/5}.about-note .about-narrative{grid-column:5/9;padding-top:10px}.about-note .about-margin-note{display:none}
+  .about-note .about-spread{grid-template-columns:repeat(8,minmax(0,1fr));column-gap:22px}
   .about-note .about-offclock{grid-column:1/-1}.finale-heading{gap:3vw}
 }
 @media(max-width:767px){

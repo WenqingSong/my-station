@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { navigationOffset } from '../navigation';
 
 const chapters = [
   ['top', '00', 'Home'], ['work', '01', 'Selected work'],
@@ -25,6 +26,7 @@ export default function SiteDetails({ disabled, compact }: { disabled: boolean; 
       }
       lastPercent = percent;
       header?.classList.toggle('is-scrolled', scrollY > 70);
+      document.documentElement.style.setProperty('--anchor-offset', `${navigationOffset(header?.getBoundingClientRect().bottom ?? 0, innerHeight)}px`);
       let current = chapters[0];
       for (const item of chapters) {
         if ((document.getElementById(item[0])?.getBoundingClientRect().top ?? Infinity) <= innerHeight * .38) current = item;
@@ -94,7 +96,10 @@ export default function SiteDetails({ disabled, compact }: { disabled: boolean; 
     document.addEventListener('pointerleave', hide);
     addEventListener('blur', hide);
     addEventListener('scroll', hide, { passive: true });
-    return () => { hide(); document.removeEventListener('pointermove', move); document.removeEventListener('pointerleave', hide); removeEventListener('blur', hide); removeEventListener('scroll', hide); };
+    addEventListener('resize', hide);
+    document.addEventListener('visibilitychange', hide);
+    document.addEventListener('pointercancel', hide);
+    return () => { hide(); document.removeEventListener('pointermove', move); document.removeEventListener('pointerleave', hide); removeEventListener('blur', hide); removeEventListener('scroll', hide); removeEventListener('resize', hide); document.removeEventListener('visibilitychange', hide); document.removeEventListener('pointercancel', hide); };
   }, [compact, disabled]);
 
   return <>

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, type ReactNode, type PointerEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, type ReactNode, type PointerEvent } from 'react';
 import { gsap } from 'gsap';
 import { workEvidence } from './work-evidence';
 import './selected-work.css';
@@ -54,11 +54,21 @@ function WorkScene({ project, compact, disabled }: { project: Project; compact: 
       visualRef.current?.style.setProperty('--pointer-y', `${-y * 7}deg`);
     });
   };
-  const reset = () => {
+  const reset = useCallback(() => {
     cancelAnimationFrame(pointerFrame.current);
     visualRef.current?.style.setProperty('--pointer-x', '0deg');
     visualRef.current?.style.setProperty('--pointer-y', '0deg');
-  };
+  }, []);
+  useEffect(() => {
+    addEventListener('scroll', reset, { passive: true });
+    addEventListener('resize', reset);
+    addEventListener('blur', reset);
+    document.addEventListener('visibilitychange', reset);
+    return () => {
+      removeEventListener('scroll', reset); removeEventListener('resize', reset); removeEventListener('blur', reset);
+      document.removeEventListener('visibilitychange', reset);
+    };
+  }, [reset]);
   return <article className={`work-scene scene-${project.id}`} id={`work-${project.id}`} aria-labelledby={`title-${project.id}`}>
     <div className="scene-inner">
       <div className="scene-topline"><span>{project.index} / SELECTED WORK</span><span>{project.category}</span></div>
@@ -70,7 +80,7 @@ function WorkScene({ project, compact, disabled }: { project: Project; compact: 
           <div className="scene-editorial"><h4>{project.heading}</h4><p>{evidence.problem}</p></div>
           <a className="case-repository" href={evidence.repo} target="_blank" rel="noopener noreferrer" aria-label={`查看 ${project.title} 源码，新窗口打开`}>查看项目源码 <span aria-hidden="true">↗</span></a>
         </div>
-        <div className="scene-art" ref={visualRef} onPointerMove={move} onPointerLeave={reset}>
+        <div className="scene-art" ref={visualRef} onPointerMove={move} onPointerLeave={reset} onPointerCancel={reset}>
           <div className="scene-art-crop"><div className="scene-art-parallax"><div className="scene-art-tilt" aria-hidden="true"><ProjectVisual kind={project.id} /></div></div></div>
           <div className="scene-art-caption"><span>{project.label} / 链路示意，非运行数据</span><span aria-hidden="true">FIG. {project.index}</span></div>
         </div>
@@ -103,7 +113,7 @@ export default function SelectedWork({ projects, compact, disabled }: { projects
   }, [compact, disabled]);
   return <section className={`selected-work work-linear lower-work ${disabled ? 'work-still' : ''}`} id="work" ref={rootRef} aria-labelledby="work-heading">
     <span id="intro" className="legacy-section-anchor" aria-hidden="true" />
-    <div className="work-prologue section-shell"><p className="eyebrow">01 / SELECTED WORK</p><h2 id="work-heading">项目，和背后的选择<span>。</span></h2><div><p>从交易里的重复请求，到 Agent 交接，再到自己的求职需求。</p><span>三个个人项目 · 源码与测试可查</span></div></div>
+    <div className="work-prologue section-shell"><p className="eyebrow">01 / SELECTED WORK</p><h2 id="work-heading">项目，和背后的<span className="title-ending">选择<span className="title-period">。</span></span></h2><div><p>从交易里的重复请求，到 Agent 交接，再到自己的求职需求。</p><span>三个个人项目 · 源码与测试可查</span></div></div>
     <div className="work-scenes">{projects.map(project => <WorkScene key={project.id} project={project} disabled={disabled} compact={compact} />)}</div>
     <div className="work-coda section-shell"><p>这些项目由我主导方案、推进与验收，使用 AI Agent 协作开发。</p><a href="#about">代码之外，关于我 <span aria-hidden="true">↓</span></a></div>
   </section>;

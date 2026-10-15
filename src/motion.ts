@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { fragmentId, navigationDuration, navigationOffset } from './navigation';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import { gsap } from 'gsap';
@@ -52,6 +53,8 @@ function anchorTop(target: HTMLElement) {
 }
 
 export function useMotionInfrastructure({ disabled, compact }: MotionInfrastructureOptions) {
+  const destination = useRef<HTMLElement | null>(null);
+  const initialNavigation = useRef(true);
   useEffect(() => {
     gsap.defaults({ duration: MOTION.duration.standard, ease: MOTION.ease.standard });
     ScrollTrigger.config({ limitCallbacks: true, ignoreMobileResize: true });
@@ -66,23 +69,73 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       syncTouch: false,
       wheelMultiplier: 0.86,
       anchors: false,
-      stopInertiaOnNavigate: true
+      stopInertiaOnNavigate: false
     });
     const update = (time: number) => lenis?.raf(time * 1000);
     const unsubscribe = lenis?.on('scroll', ScrollTrigger.update);
     let locked = false;
     let openingWasLocked = document.documentElement.classList.contains('intro-locked');
     let restoreFrame = 0;
+    let endTimer = 0;
+    let alive = true;
+    const previousRestoration = history.scrollRestoration;
+    history.scrollRestoration = 'manual';
+    const targetTop = (target: HTMLElement) => Math.max(0, anchorTop(target) - (target.id === 'top' ? 0 : navigationOffset(document.querySelector('.site-header')?.getBoundingClientRect().bottom ?? 0, innerHeight)));
+    const clearDestination = () => { destination.current = null; clearTimeout(endTimer); };
+    const cancelScroll = () => {
+      // scrollTo(current, immediate) can early-return when Lenis already has
+      // that target, leaving the previous animation running. Stop it explicitly.
+      if (lenis) { lenis.stop(); if (!locked) lenis.start(); }
+      else window.scrollTo({ top: scrollY, behavior: 'instant' });
+    };
+    const stopNavigation = () => {
+      initialNavigation.current = false;
+      if (!destination.current) return;
+      clearDestination();
+      cancelScroll();
+    };
+    const travel = (target: HTMLElement, immediate = false) => {
+      clearTimeout(endTimer);
+      cancelScroll();
+      destination.current = target;
+      const top = targetTop(target);
+      if (lenis) lenis.scrollTo(top, { immediate, duration: navigationDuration(top - scrollY, innerHeight), easing: t => 1 - Math.pow(1 - t, 4), onComplete: clearDestination });
+      else {
+        window.scrollTo({ top, behavior: immediate || disabled ? 'instant' : 'smooth' });
+        if (immediate || disabled) clearDestination();
+        else endTimer = window.setTimeout(clearDestination, 1400);
+      }
+    };
+    const restoreHash = () => {
+      if (!alive || document.documentElement.classList.contains('intro-locked')) return;
+      const target = document.getElementById(fragmentId(location.hash) || 'top');
+      if (target) {
+        target.setAttribute('tabindex', '-1');
+        target.focus({ preventScroll: true });
+        travel(target, true);
+      }
+      initialNavigation.current = false;
+    };
+    const resize = () => {
+      cancelAnimationFrame(restoreFrame);
+      restoreFrame = requestAnimationFrame(() => {
+        lenis?.resize();
+        // Only a navigation in flight is retargeted. Resizing while reading
+        // must not drag the visitor back to an old hash.
+        if (destination.current) travel(destination.current, true);
+      });
+    };
     const syncLock = () => {
       const openingLocked = document.documentElement.classList.contains('intro-locked');
       if (openingWasLocked && !openingLocked && location.hash) {
+        cancelAnimationFrame(restoreFrame);
         restoreFrame = requestAnimationFrame(() => { ScrollTrigger.refresh(); restoreHash(); });
       }
       openingWasLocked = openingLocked;
       const next = document.hidden || openingLocked || document.documentElement.classList.contains('jobs-modal-open');
       if (next === locked) return;
       locked = next;
-      if (locked) lenis?.stop(); else lenis?.start();
+      if (locked) { stopNavigation(); lenis?.stop(); } else lenis?.start();
     };
     const lockObserver = new MutationObserver(syncLock);
     lockObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
@@ -94,17 +147,15 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const link = (event.target as Element).closest<HTMLAnchorElement>('a[href^="#"]');
       const hash = link?.getAttribute('href');
-      if (!hash || hash === '#') return;
-      const target = document.getElementById(hash.slice(1));
+      if (!hash || hash === '#' || link?.target === '_blank' || link?.hasAttribute('download')) return;
+      const target = document.getElementById(fragmentId(hash));
       if (!target) return;
       event.preventDefault();
+      stopNavigation();
       if (location.hash !== hash) history.pushState(null, '', hash);
       target.setAttribute('tabindex', '-1');
       target.focus({ preventScroll: true });
-      const offset = hash === '#top' ? 0 : -76;
-      const top = Math.max(0, anchorTop(target) + offset);
-      if (lenis) lenis.scrollTo(top, { duration: hash === '#top' ? 1.65 : 1.2, easing: t => 1 - Math.pow(1 - t, 4) });
-      else window.scrollTo({ top, behavior: disabled ? 'instant' : 'smooth' });
+      travel(target);
     };
     document.addEventListener('click', navigate);
     const revealFocusedScene = (event: FocusEvent) => {
@@ -120,19 +171,21 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       else window.scrollTo({ top, behavior: 'instant' });
     };
     document.addEventListener('focusin', revealFocusedScene);
-    let alive = true;
-    const restoreHash = () => {
-      if (!alive || document.documentElement.classList.contains('intro-locked')) return;
-      const target = document.getElementById(location.hash.slice(1) || 'top');
-      if (!target) return;
-      const offset = target.id === 'top' ? 0 : -76;
-      const top = Math.max(0, anchorTop(target) + offset);
-      if (lenis) lenis.scrollTo(top, { immediate: true });
-      else window.scrollTo({ top, behavior: 'instant' });
+    const interruptKey = (event: KeyboardEvent) => {
+      if ((event.target as Element)?.closest('input, textarea, select, [contenteditable="true"]')) return;
+      if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' ', 'Escape', 'Tab'].includes(event.key)) stopNavigation();
     };
+    // Capture before Lenis so the next wheel delta starts at the visible
+    // position rather than the previous, far-away programmatic destination.
+    addEventListener('wheel', stopNavigation, { passive: true, capture: true });
+    addEventListener('touchstart', stopNavigation, { passive: true, capture: true });
+    addEventListener('keydown', interruptKey, true);
+    addEventListener('blur', stopNavigation);
+    addEventListener('resize', resize);
+    if (destination.current) resize();
     addEventListener('popstate', restoreHash);
     addEventListener('hashchange', restoreHash);
-    const restoreInitial = () => { if (location.hash && scrollY < 1) restoreHash(); };
+    const restoreInitial = () => { if (initialNavigation.current && location.hash && scrollY < 1) restoreHash(); };
     const hashDeadline = window.setTimeout(restoreInitial, 700);
     document.fonts.ready.then(restoreInitial);
 
@@ -144,10 +197,17 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       document.removeEventListener('focusin', revealFocusedScene);
       alive = false;
       cancelAnimationFrame(restoreFrame);
+      clearTimeout(endTimer);
+      removeEventListener('wheel', stopNavigation, true);
+      removeEventListener('touchstart', stopNavigation, true);
+      removeEventListener('keydown', interruptKey, true);
+      removeEventListener('blur', stopNavigation);
+      removeEventListener('resize', resize);
       clearTimeout(hashDeadline);
       removeEventListener('popstate', restoreHash);
       removeEventListener('hashchange', restoreHash);
       lockObserver.disconnect();
+      history.scrollRestoration = previousRestoration;
       document.removeEventListener('visibilitychange', syncLock);
       unsubscribe?.();
       gsap.ticker.remove(update);
@@ -166,7 +226,7 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
     const sections = root.querySelectorAll<HTMLElement>('[data-motion-section]');
 
     if (disabled) {
-      gsap.set(revealTargets, { clearProps: 'all' });
+      if (revealTargets.length) gsap.set(revealTargets, { clearProps: 'all' });
       sections.forEach(section => { section.dataset.motionState = 'visible'; });
       ScrollTrigger.refresh();
       return;
@@ -254,7 +314,7 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       active = false;
       removeEventListener('load', refresh);
       context.revert();
-      gsap.set(revealTargets, { clearProps: 'all' });
+      if (revealTargets.length) gsap.set(revealTargets, { clearProps: 'all' });
       sections.forEach(section => { delete section.dataset.motionState; });
     };
   }, [compact, disabled]);

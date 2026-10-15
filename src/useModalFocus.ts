@@ -28,8 +28,10 @@ export function useModalFocus(rootRef: RefObject<HTMLDivElement>, active: boolea
     return () => {
       document.removeEventListener('keydown', onKey);
       background.forEach((element, index) => { element.inert = original[index]; });
-      const target = previous?.isConnected && previous !== document.body && !previous.closest('.opening')
-        ? previous : document.querySelector<HTMLElement>('.brand');
+      const visible = (element: HTMLElement | null) => element?.isConnected && !element.inert && element.getClientRects().length > 0;
+      const fallback = Array.from(document.querySelectorAll<HTMLElement>('.brand, .site-header nav a')).find(element => visible(element));
+      const target = visible(previous) && previous !== document.body && !previous?.closest('.opening')
+        ? previous : fallback;
       target?.focus({ preventScroll: true });
     };
   }, [active, dismiss, rootRef]);

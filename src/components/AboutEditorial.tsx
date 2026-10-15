@@ -1,18 +1,28 @@
+import { useEffect, useRef, useState } from 'react';
 import './about-editorial.css';
 
 export default function AboutEditorial() {
+  const image = useRef<HTMLImageElement>(null);
+  const [portraitState, setPortraitState] = useState<'loading' | 'loaded' | 'error'>('loading');
+  const portraitSizes = '(max-width: 620px) calc(83.333vw - 35.333px), (max-width: 1000px) calc(45.4vw - 11px), (max-width: 1652px) 29vw, 479px';
+  useEffect(() => {
+    if (image.current?.complete) setPortraitState(image.current.naturalWidth ? 'loaded' : 'error');
+  }, []);
   return <section className="about-editorial about-note section-shell" id="about" aria-labelledby="about-title">
     <span id="skills" className="legacy-section-anchor" aria-hidden="true" />
     <div className="about-masthead"><p>02 / A PERSONAL NOTE</p><span>MA’ANSHAN, CHINA</span></div>
     <div className="about-spread">
-      <h2 className="about-title" id="about-title">Hi, I’m Arthur<span className="about-period">.</span></h2>
+      <h2 className="about-title" id="about-title">Hi, I’m <span className="title-ending">Arthur<span className="about-period">.</span></span></h2>
       <p className="about-margin-note">宋文清<br />软件工程本科在读<br />预计 2027 年 7 月毕业</p>
       <figure className="about-portrait">
-        <picture className="portrait-window">
-          <source type="image/webp" srcSet="/arthur-editorial-640.webp 640w, /arthur-editorial-960.webp 960w, /arthur-editorial-1440.webp 1440w, /arthur-editorial-2160.webp 2160w" sizes="(max-width: 620px) 72vw, (max-width: 900px) 42vw, 32vw" />
-          <img src="/arthur-editorial-960.jpg" srcSet="/arthur-editorial-640.jpg 640w, /arthur-editorial-960.jpg 960w, /arthur-editorial-1440.jpg 1440w, /arthur-editorial-2160.jpg 2160w" sizes="(max-width: 620px) 72vw, (max-width: 900px) 42vw, 32vw"
-            width="960" height="1440" loading="lazy" decoding="async" alt="Arthur 身着深色西装，站在深蓝色背景前" />
-        </picture>
+        <div className="portrait-frame" data-image-state={portraitState}>
+          <picture className="portrait-window">
+            <source type="image/webp" srcSet="/arthur-editorial-640.webp 640w, /arthur-editorial-960.webp 960w, /arthur-editorial-1440.webp 1440w, /arthur-editorial-2160.webp 2160w" sizes={portraitSizes} />
+            <img ref={image} src="/arthur-editorial-960.jpg" srcSet="/arthur-editorial-640.jpg 640w, /arthur-editorial-960.jpg 960w, /arthur-editorial-1440.jpg 1440w, /arthur-editorial-2160.jpg 2160w" sizes={portraitSizes}
+              width="960" height="1440" loading="lazy" decoding="async" onLoad={() => setPortraitState('loaded')} onError={() => setPortraitState('error')} alt="Arthur 身着深色西装，站在深蓝色背景前" />
+          </picture>
+          {portraitState !== 'loaded' && <span className="portrait-status" role="status">{portraitState === 'error' ? '照片暂未加载，文字介绍仍可阅读。' : '正在加载照片…'}</span>}
+        </div>
         <figcaption><span>Arthur / 宋文清</span><span>PORTRAIT</span></figcaption>
       </figure>
       <div className="about-narrative">
