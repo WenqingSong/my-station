@@ -4,6 +4,7 @@ import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { offsetWithin } from './scroll-story';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -76,6 +77,7 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
     let locked = false;
     let openingWasLocked = document.documentElement.classList.contains('intro-locked');
     let restoreFrame = 0;
+    let focusFrame = 0;
     let endTimer = 0;
     let alive = true;
     const previousRestoration = history.scrollRestoration;
@@ -158,17 +160,26 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       travel(target);
     };
     document.addEventListener('click', navigate);
-    const revealFocusedScene = (event: FocusEvent) => {
-      const control = event.target as HTMLElement;
+    const ensureSceneFocus = (control: HTMLElement) => {
       const scene = control.closest<HTMLElement>('.work-scene');
       if (!scene || control === scene || compact || disabled || getComputedStyle(scene).position !== 'sticky') return;
       const rect = control.getBoundingClientRect();
       const hit = document.elementFromPoint(rect.left + rect.width / 2, Math.min(innerHeight - 1, Math.max(0, rect.top + rect.height / 2)));
-      if (rect.top >= 76 && rect.bottom <= innerHeight && hit && scene.contains(hit)) return;
-      const inside = rect.bottom - scene.getBoundingClientRect().top;
-      const top = Math.max(0, anchorTop(scene) + Math.max(-76, inside - innerHeight + 32));
+      const safeTop = navigationOffset(document.querySelector('.site-header')?.getBoundingClientRect().bottom ?? 0, innerHeight);
+      const safeBottom = innerHeight - 32;
+      if (rect.top >= safeTop && rect.bottom <= safeBottom && hit && scene.contains(hit)) return;
+      const inside = offsetWithin(control, scene) + control.offsetHeight;
+      const top = Math.max(0, anchorTop(scene) + Math.max(-safeTop, inside - safeBottom));
       if (lenis) lenis.scrollTo(top, { immediate: true });
       else window.scrollTo({ top, behavior: 'instant' });
+    };
+    const revealFocusedScene = (event: FocusEvent) => {
+      const control = event.target as HTMLElement;
+      ensureSceneFocus(control);
+      // Native Tab scrolling may run after focusin. Recheck once, preserving
+      // breathing room for the focus outline and ignoring superseded focus.
+      cancelAnimationFrame(focusFrame);
+      focusFrame = requestAnimationFrame(() => { if (document.activeElement === control) ensureSceneFocus(control); });
     };
     document.addEventListener('focusin', revealFocusedScene);
     const interruptKey = (event: KeyboardEvent) => {
@@ -197,6 +208,7 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       document.removeEventListener('focusin', revealFocusedScene);
       alive = false;
       cancelAnimationFrame(restoreFrame);
+      cancelAnimationFrame(focusFrame);
       clearTimeout(endTimer);
       removeEventListener('wheel', stopNavigation, true);
       removeEventListener('touchstart', stopNavigation, true);

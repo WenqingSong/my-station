@@ -157,9 +157,9 @@ function App() {
 
         <SelectedWork projects={projects} compact={compact} disabled={disabled} />
 
-        <AboutEditorial />
+        <AboutEditorial disabled={disabled} compact={compact} />
 
-        <Contact disabled={disabled} reduced={reduced} toggleMotion={() => setMotionPaused(value => !value)} />
+        <Contact disabled={disabled} compact={compact} reduced={reduced} toggleMotion={() => setMotionPaused(value => !value)} />
       </main>
       {showJobsModal && <JobsModal onClose={closeJobsModal} disabled={disabled} />}
     </>

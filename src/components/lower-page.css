@@ -126,3 +126,21 @@
   .about-note .about-offclock{grid-column:1/-1;grid-row:5;margin-top:30px;grid-template-columns:1fr;gap:24px}.about-note .about-pursuits{gap:18px}
 }
 @media(prefers-reduced-motion:reduce){.lower-work .scene-art-parallax,.lower-work .scene-art-tilt{transform:none!important}}
+
+/* Continuous scroll narrative, without hiding project evidence or controls. */
+.work-beat{display:block;height:0;pointer-events:none}
+.lower-work.work-scroll .work-scene{position:sticky;top:var(--scene-top,0px);min-height:100svh;margin-bottom:28svh;overflow:clip}
+.lower-work.work-scroll .work-scene:last-child{margin-bottom:0}
+.lower-work.work-scroll .scene-inner{transform-origin:50% 0%;will-change:transform}
+.lower-work .scene-title-mask{padding-bottom:.14em;margin-bottom:-.14em;padding-right:.06em;margin-right:-.06em}
+.contact-finale h2{overflow:hidden;padding-bottom:.12em;margin-bottom:-.12em}
+.finale-title-line{display:block}
+/* Keyboard focus is never clipped, even during a reverse scroll. */
+.work-scene:focus-within .scene-title-line{transform:none!important}
+.motion-paused .about-title,.motion-paused .finale-title-line{transform:none!important}
+.motion-paused .portrait-window{clip-path:none!important}
+@media(prefers-reduced-motion:reduce){
+  .lower-work.work-scroll .work-scene{position:relative;top:auto;min-height:0;margin-bottom:0}
+  .about-title,.finale-title-line{transform:none!important}
+  .portrait-window{clip-path:none!important}
+}

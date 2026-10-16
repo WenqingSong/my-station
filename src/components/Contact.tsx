@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { gsap } from 'gsap';
+import { createStoryTween } from '../scroll-story';
 import { CONTACT_EMAIL, copyEmail } from './copy-contact';
 
-export default function Contact({ disabled, reduced, toggleMotion }: { disabled: boolean; reduced: boolean; toggleMotion: () => void }) {
+export default function Contact({ disabled, compact, reduced, toggleMotion }: { disabled: boolean; compact: boolean; reduced: boolean; toggleMotion: () => void }) {
+  const root = useRef<HTMLElement>(null);
   const [copyState, setCopyState] = useState<'idle' | 'pending' | 'copied' | 'manual'>('idle');
   const input = useRef<HTMLInputElement>(null);
   const resetTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -9,6 +12,15 @@ export default function Contact({ disabled, reduced, toggleMotion }: { disabled:
   const copying = useRef(false);
   useEffect(() => { alive.current = true; return () => { alive.current = false; clearTimeout(resetTimer.current); }; }, []);
   useEffect(() => { if (copyState === 'manual') { input.current?.focus(); input.current?.select(); } }, [copyState]);
+  useLayoutEffect(() => {
+    if (disabled || !root.current) return;
+    const context = gsap.context(() => {
+      createStoryTween(root.current!.querySelector('.finale-title-line'), 'closing', compact, {
+        trigger: root.current, start: 'top bottom', end: 'clamp(top 45%)', scrub: true
+      });
+    }, root);
+    return () => context.revert();
+  }, [disabled, compact]);
   const copy = async () => {
     if (copying.current) return;
     copying.current = true;
@@ -20,10 +32,10 @@ export default function Contact({ disabled, reduced, toggleMotion }: { disabled:
     setCopyState(result);
     if (result === 'copied') resetTimer.current = setTimeout(() => setCopyState('idle'), 3500);
   };
-  return <section className="contact contact-finale" id="contact" aria-labelledby="contact-title">
+  return <section ref={root} className="contact contact-finale" id="contact" aria-labelledby="contact-title">
     <div className="section-shell">
       <div className="contact-topline"><p className="eyebrow">03 / CONTACT</p><a className="finale-back" href="#top">返回顶部 <span aria-hidden="true">↑</span></a></div>
-      <div className="finale-heading"><h2 id="contact-title">Let’s <span className="title-ending">talk<span className="finale-period">.</span></span></h2><p>聊聊项目、工作机会，<br />或告诉我网站哪里需要改进。</p></div>
+      <div className="finale-heading"><h2 id="contact-title"><span className="finale-title-line">Let’s <span className="title-ending">talk<span className="finale-period">.</span></span></span></h2><p>聊聊项目、工作机会，<br />或告诉我网站哪里需要改进。</p></div>
       <div className="finale-email-row">
         <a className="finale-email" href={`mailto:${CONTACT_EMAIL}`} aria-label={`发送邮件至 ${CONTACT_EMAIL}`}>{CONTACT_EMAIL}<span aria-hidden="true">↗</span></a>
         <button className="copy-email" type="button" onClick={copy} disabled={copyState === 'pending'} aria-describedby="copy-feedback"><span>{copyState === 'copied' ? '已复制' : copyState === 'pending' ? '正在复制…' : '复制邮箱'}</span><span aria-hidden="true">{copyState === 'copied' ? '✓' : '⧉'}</span></button>

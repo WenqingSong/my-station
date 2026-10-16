@@ -1,14 +1,30 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { gsap } from 'gsap';
+import { createStoryTween } from '../scroll-story';
 import './about-editorial.css';
 
-export default function AboutEditorial() {
+export default function AboutEditorial({ disabled, compact }: { disabled: boolean; compact: boolean }) {
+  const root = useRef<HTMLElement>(null);
   const image = useRef<HTMLImageElement>(null);
   const [portraitState, setPortraitState] = useState<'loading' | 'loaded' | 'error'>('loading');
   const portraitSizes = '(max-width: 620px) calc(83.333vw - 35.333px), (max-width: 1000px) calc(45.4vw - 11px), (max-width: 1652px) 29vw, 479px';
   useEffect(() => {
     if (image.current?.complete) setPortraitState(image.current.naturalWidth ? 'loaded' : 'error');
   }, []);
-  return <section className="about-editorial about-note section-shell" id="about" aria-labelledby="about-title">
+  useLayoutEffect(() => {
+    if (disabled || !root.current) return;
+    const context = gsap.context(() => {
+      const frame = root.current!.querySelector('.portrait-frame');
+      createStoryTween(root.current!.querySelector('.portrait-window'), 'portrait', compact, {
+        trigger: frame, start: 'top 92%', end: compact ? 'top 58%' : 'top 35%', scrub: true
+      });
+      createStoryTween(root.current!.querySelector('.about-title'), 'chapter', compact, {
+        trigger: root.current, start: 'top bottom', end: 'top 55%', scrub: true
+      });
+    }, root);
+    return () => context.revert();
+  }, [disabled, compact]);
+  return <section ref={root} className="about-editorial about-note section-shell" id="about" aria-labelledby="about-title">
     <span id="skills" className="legacy-section-anchor" aria-hidden="true" />
     <div className="about-masthead"><p>02 / A PERSONAL NOTE</p><span>MA’ANSHAN, CHINA</span></div>
     <div className="about-spread">

@@ -33,11 +33,17 @@ test('unavailable or rejected clipboard gives a manual fallback', async () => {
   assert.equal(await copyEmail({writeText: async () => {throw new Error('denied');}}), 'manual');
 });
 
-test('critical lower-page content never relies on entrance reveals', () => {
+test('project evidence stays readable while scroll-linked titles and artwork remain enabled', () => {
   const work = source('src/components/SelectedWork.tsx');
   const about = source('src/components/AboutEditorial.tsx');
   const contact = source('src/components/Contact.tsx');
-  for (const file of [work, about, contact]) assert.doesNotMatch(file, /data-reveal|autoAlpha|opacity:\s*0|yPercent:\s*110/);
+  for (const file of [work, about, contact]) {
+    assert.doesNotMatch(file, /data-reveal|autoAlpha|opacity:\s*0/);
+    assert.match(file, /createStoryTween/);
+    assert.match(file, /context\.revert\(\)/);
+  }
+  assert.match(work, /compact \|\| disabled \? 'work-linear' : 'work-scroll'/);
+  assert.doesNotMatch(work, /if \(!root \|\| disabled \|\| compact\) return/);
   assert.doesNotMatch(work, /探索结构|setExpanded|toggleActions/);
   assert.doesNotMatch(about, /Still becoming|about-certification/);
   assert.match(contact, /role="status"/);
