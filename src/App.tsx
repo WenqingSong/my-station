@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Contact from './components/Contact';
+import AnimatedContent from './components/AnimatedContent';
+import ScrollFloat from './components/ScrollFloat';
 import SelectedWork from './components/SelectedWork';
 import AboutEditorial from './components/AboutEditorial';
 import SiteDetails from './components/SiteDetails';
@@ -155,11 +156,51 @@ function App() {
       <main>
         <FirstHero projects={projects} paused={complexMotionDisabled} motionDisabled={disabled} reduced={reduced} toggleMotion={() => setMotionPaused(value => !value)} />
 
+        <section className="intro section-shell" id="intro" data-motion-section>
+          <div className="intro-title">
+            <p className="eyebrow">A LITTLE INTRODUCTION</p>
+            <ScrollFloat disabled={complexMotionDisabled}>最近主要在忙这些事情。</ScrollFloat>
+          </div>
+          <AnimatedContent className="intro-aside" distance={60} threshold={.25} disabled={disabled}>
+            <p>目前花时间最多的是 SurgeCart 的订单、秒杀和失败恢复，也在维护 Offer 捕手。使用 AI Agent 开发时遇到的交接问题，让我开始做 Agent Workflow。<br /><br />2026 年 7—8 月，我在杭州智航星辰人工智能科技有限公司做 Go 后端实习，参与企业课程平台开发，跟进 AI 客服系统的问题定位、修复和联调。</p>
+            <a className="round-button" data-magnetic data-cursor="action" href="#about">About me <span aria-hidden="true">↗</span></a>
+          </AnimatedContent>
+        </section>
+
         <SelectedWork projects={projects} compact={compact} disabled={disabled} />
+
+        <section className="capabilities section-shell" id="skills" data-motion-section>
+          <div className="capabilities-title">
+            <p className="eyebrow" data-reveal="content">THE FOUNDATION</p>
+            <h2 data-reveal="text">
+              <span className="reveal-line"><span className="reveal-line-inner">Behind the</span></span>
+              <span className="reveal-line"><span className="reveal-line-inner accent">interface.</span></span>
+            </h2>
+          </div>
+          <div className="capability-list">
+            {[
+              ['01', 'Go & Backend', '主要用 Go 和 GoFrame 写 REST API。在电商项目里实践事务、库存条件更新、幂等和异步落单，再用测试检查重复请求和失败路径。', 'Go · GoFrame · MySQL · Redis'],
+              ['02', 'AI & Tooling', '做过 LLM 结构化输出校验与回退，也在用 Git 和 Go 工具检查 Agent 的任务交接与代码审查。AI 帮我提效，但不能代替验证。', 'JSON Schema · Git · Go'],
+              ['03', 'Deployment & Cloud', '用 Docker Compose 和 Nginx 部署过项目，接触过 Prometheus 指标监控。长期关注云计算，Kubernetes 还在学习中。', 'Docker Compose · Nginx · Prometheus']
+            ].map(([index, title, copy, stack]) => <article key={index} data-reveal="row"><span>{index}</span><div><h3>{title}</h3><p>{copy}</p><small>{stack}</small></div></article>)}
+          </div>
+        </section>
 
         <AboutEditorial disabled={disabled} compact={compact} />
 
-        <Contact disabled={disabled} compact={compact} reduced={reduced} toggleMotion={() => setMotionPaused(value => !value)} />
+        <section className="contact" id="contact" data-motion-section>
+          <div className="section-shell">
+            <div className="contact-topline"><p className="eyebrow" data-reveal="content">THE NEXT CHAPTER / 下一次对话</p><span className="contact-arrival-mark" aria-hidden="true" /></div>
+            <h2 data-reveal="text">
+              <span className="reveal-line"><span className="reveal-line-inner">Let’s talk</span></span>
+              <span className="reveal-line"><span className="reveal-line-inner contact-muted">about it.</span></span>
+            </h2>
+            <div className="contact-rule"><span className="contact-rule-line" aria-hidden="true" /><a className="round-button blue" data-magnetic data-cursor="action" href="mailto:1784870640@qq.com">Get in touch <span aria-hidden="true">↗</span></a></div>
+            <div className="contact-options" data-reveal="content"><a className="text-link" href="mailto:1784870640@qq.com">1784870640@qq.com <span aria-hidden="true">↗</span></a><div><a className="text-link" href="tel:+8618256109164"><span className="contact-option-label">PHONE</span><span>+86 182 5610 9164</span></a><span><span className="contact-option-label">QQ</span><span>1784870640</span></span></div></div>
+            <div className="contact-signoff"><span className="contact-signoff-word">Arthur<span>.</span></span><span className="contact-signoff-note">聊项目、工作机会，或告诉我网站哪里需要改进。</span></div>
+            <footer><span>2026 © Arthur</span><span>China · UTC+8</span><button type="button" onClick={() => setMotionPaused(value => !value)} aria-pressed={disabled} disabled={reduced}>{reduced ? '系统减少动效' : disabled ? '开启动效　▷' : '暂停动效　Ⅱ'}</button><a className="back-top" href="#top">Back to top <span aria-hidden="true">↑</span></a></footer>
+          </div>
+        </section>
       </main>
       {showJobsModal && <JobsModal onClose={closeJobsModal} disabled={disabled} />}
     </>

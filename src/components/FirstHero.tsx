@@ -24,7 +24,6 @@ export default function FirstHero({ projects, paused, motionDisabled, reduced, t
     let width = 0, height = 0, frame = 0;
     let onscreen = true, alive = true;
     let pointer = { x: -999, y: -999 };
-    let resizeFrame = 0;
     const resize = () => {
       const rect = host.getBoundingClientRect();
       const dpr = Math.min(devicePixelRatio || 1, 2);
@@ -85,10 +84,7 @@ export default function FirstHero({ projects, paused, motionDisabled, reduced, t
       openingLocked = locked;
     });
     openingObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    const resizeObserver = new ResizeObserver(() => {
-      cancelAnimationFrame(resizeFrame);
-      resizeFrame = requestAnimationFrame(() => { resize(); leave(); });
-    });
+    const resizeObserver = new ResizeObserver(() => { resize(); leave(); });
     const intersection = new IntersectionObserver(([entry]) => {
       onscreen = entry.isIntersecting;
       if (!onscreen) { cancelAnimationFrame(frame); frame = 0; leave(); } else wake();
@@ -97,16 +93,12 @@ export default function FirstHero({ projects, paused, motionDisabled, reduced, t
     host.querySelectorAll<HTMLElement>('[data-field-quiet]').forEach(element => resizeObserver.observe(element));
     intersection.observe(host);
     host.addEventListener('pointermove', move); host.addEventListener('pointerleave', leave);
-    host.addEventListener('pointercancel', leave);
-    addEventListener('blur', leave); addEventListener('scroll', leave, { passive: true });
     document.addEventListener('visibilitychange', visibility);
     document.fonts.ready.then(() => { if (alive) { resize(); leave(); } });
     resize(); draw();
     return () => {
-      alive = false; cancelAnimationFrame(frame); cancelAnimationFrame(resizeFrame); resizeObserver.disconnect(); intersection.disconnect(); openingObserver.disconnect();
+      alive = false; cancelAnimationFrame(frame); resizeObserver.disconnect(); intersection.disconnect(); openingObserver.disconnect();
       host.removeEventListener('pointermove', move); host.removeEventListener('pointerleave', leave);
-      host.removeEventListener('pointercancel', leave);
-      removeEventListener('blur', leave); removeEventListener('scroll', leave);
       document.removeEventListener('visibilitychange', visibility);
     };
   }, [paused]);

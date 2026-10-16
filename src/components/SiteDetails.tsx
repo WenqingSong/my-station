@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
-import { navigationOffset } from '../navigation';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { gsap } from 'gsap';
 
 const chapters = [
-  ['top', '00', 'Home'], ['work', '01', 'Selected work'],
-  ['about', '02', 'About Arthur'], ['contact', '03', 'Contact']
+  ['top', '01', 'Home'], ['intro', '02', 'Introduction'], ['work', '03', 'Selected work'],
+  ['skills', '04', 'Foundation'], ['about', '05', 'About Arthur'], ['contact', '06', 'Contact']
 ];
 
 export default function SiteDetails({ disabled, compact }: { disabled: boolean; compact: boolean }) {
@@ -26,12 +26,11 @@ export default function SiteDetails({ disabled, compact }: { disabled: boolean; 
       }
       lastPercent = percent;
       header?.classList.toggle('is-scrolled', scrollY > 70);
-      document.documentElement.style.setProperty('--anchor-offset', `${navigationOffset(header?.getBoundingClientRect().bottom ?? 0, innerHeight)}px`);
       let current = chapters[0];
       for (const item of chapters) {
         if ((document.getElementById(item[0])?.getBoundingClientRect().top ?? Infinity) <= innerHeight * .38) current = item;
       }
-      if (progress > .995) current = chapters[chapters.length - 1];
+      if (progress > .995) current = chapters[5];
       setChapter(previous => previous === current ? previous : current);
       document.querySelectorAll('.site-header nav a').forEach(link => {
         const active = link.getAttribute('href') === `#${current[0]}`;
@@ -96,11 +95,18 @@ export default function SiteDetails({ disabled, compact }: { disabled: boolean; 
     document.addEventListener('pointerleave', hide);
     addEventListener('blur', hide);
     addEventListener('scroll', hide, { passive: true });
-    addEventListener('resize', hide);
-    document.addEventListener('visibilitychange', hide);
-    document.addEventListener('pointercancel', hide);
-    return () => { hide(); document.removeEventListener('pointermove', move); document.removeEventListener('pointerleave', hide); removeEventListener('blur', hide); removeEventListener('scroll', hide); removeEventListener('resize', hide); document.removeEventListener('visibilitychange', hide); document.removeEventListener('pointercancel', hide); };
+    return () => { hide(); document.removeEventListener('pointermove', move); document.removeEventListener('pointerleave', hide); removeEventListener('blur', hide); removeEventListener('scroll', hide); };
   }, [compact, disabled]);
+
+  useLayoutEffect(() => {
+    if (disabled) return;
+    const context = gsap.context(() => {
+      gsap.fromTo('.contact-rule-line', { scaleX: .12 }, { scaleX: 1, duration: 1.1, ease: 'power3.inOut', scrollTrigger: { trigger: '.contact-rule', start: 'top 90%', once: true } });
+      gsap.fromTo('.contact-signoff-word', { yPercent: 108 }, { yPercent: 0, duration: 1.15, ease: 'power4.out', scrollTrigger: { trigger: '.contact-signoff', start: 'top 96%', once: true } });
+      if (!compact) gsap.fromTo('.contact-arrival-mark', { rotate: -65 }, { rotate: 0, ease: 'none', scrollTrigger: { trigger: '#contact', start: 'top bottom', end: 'top 15%', scrub: .8 } });
+    });
+    return () => context.revert();
+  }, [disabled, compact]);
 
   return <>
     <div className="reading-progress" role="progressbar" aria-label="页面阅读进度" aria-valuemin={0} aria-valuemax={100} aria-valuenow={0} ref={progressRef}><span /></div>

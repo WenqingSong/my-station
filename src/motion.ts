@@ -1,10 +1,8 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { fragmentId, navigationDuration, navigationOffset } from './navigation';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { offsetWithin } from './scroll-story';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -42,7 +40,7 @@ type MotionInfrastructureOptions = {
 // Sticky rectangles describe the currently pinned position, not the anchor's
 // original place in the document. Resolve scenes from their flow siblings.
 function anchorTop(target: HTMLElement) {
-  if (target.matches('.work-scene') && target.parentElement && getComputedStyle(target).position === 'sticky') {
+  if (target.matches('.work-scene') && target.parentElement) {
     let top = scrollY + target.parentElement.getBoundingClientRect().top;
     for (const sibling of Array.from(target.parentElement.children)) {
       if (sibling === target) break;
@@ -54,8 +52,6 @@ function anchorTop(target: HTMLElement) {
 }
 
 export function useMotionInfrastructure({ disabled, compact }: MotionInfrastructureOptions) {
-  const destination = useRef<HTMLElement | null>(null);
-  const initialNavigation = useRef(true);
   useEffect(() => {
     gsap.defaults({ duration: MOTION.duration.standard, ease: MOTION.ease.standard });
     ScrollTrigger.config({ limitCallbacks: true, ignoreMobileResize: true });
@@ -70,74 +66,16 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       syncTouch: false,
       wheelMultiplier: 0.86,
       anchors: false,
-      stopInertiaOnNavigate: false
+      stopInertiaOnNavigate: true
     });
     const update = (time: number) => lenis?.raf(time * 1000);
     const unsubscribe = lenis?.on('scroll', ScrollTrigger.update);
     let locked = false;
-    let openingWasLocked = document.documentElement.classList.contains('intro-locked');
-    let restoreFrame = 0;
-    let focusFrame = 0;
-    let endTimer = 0;
-    let alive = true;
-    const previousRestoration = history.scrollRestoration;
-    history.scrollRestoration = 'manual';
-    const targetTop = (target: HTMLElement) => Math.max(0, anchorTop(target) - (target.id === 'top' ? 0 : navigationOffset(document.querySelector('.site-header')?.getBoundingClientRect().bottom ?? 0, innerHeight)));
-    const clearDestination = () => { destination.current = null; clearTimeout(endTimer); };
-    const cancelScroll = () => {
-      // scrollTo(current, immediate) can early-return when Lenis already has
-      // that target, leaving the previous animation running. Stop it explicitly.
-      if (lenis) { lenis.stop(); if (!locked) lenis.start(); }
-      else window.scrollTo({ top: scrollY, behavior: 'instant' });
-    };
-    const stopNavigation = () => {
-      initialNavigation.current = false;
-      if (!destination.current) return;
-      clearDestination();
-      cancelScroll();
-    };
-    const travel = (target: HTMLElement, immediate = false) => {
-      clearTimeout(endTimer);
-      cancelScroll();
-      destination.current = target;
-      const top = targetTop(target);
-      if (lenis) lenis.scrollTo(top, { immediate, duration: navigationDuration(top - scrollY, innerHeight), easing: t => 1 - Math.pow(1 - t, 4), onComplete: clearDestination });
-      else {
-        window.scrollTo({ top, behavior: immediate || disabled ? 'instant' : 'smooth' });
-        if (immediate || disabled) clearDestination();
-        else endTimer = window.setTimeout(clearDestination, 1400);
-      }
-    };
-    const restoreHash = () => {
-      if (!alive || document.documentElement.classList.contains('intro-locked')) return;
-      const target = document.getElementById(fragmentId(location.hash) || 'top');
-      if (target) {
-        target.setAttribute('tabindex', '-1');
-        target.focus({ preventScroll: true });
-        travel(target, true);
-      }
-      initialNavigation.current = false;
-    };
-    const resize = () => {
-      cancelAnimationFrame(restoreFrame);
-      restoreFrame = requestAnimationFrame(() => {
-        lenis?.resize();
-        // Only a navigation in flight is retargeted. Resizing while reading
-        // must not drag the visitor back to an old hash.
-        if (destination.current) travel(destination.current, true);
-      });
-    };
     const syncLock = () => {
-      const openingLocked = document.documentElement.classList.contains('intro-locked');
-      if (openingWasLocked && !openingLocked && location.hash) {
-        cancelAnimationFrame(restoreFrame);
-        restoreFrame = requestAnimationFrame(() => { ScrollTrigger.refresh(); restoreHash(); });
-      }
-      openingWasLocked = openingLocked;
-      const next = document.hidden || openingLocked || document.documentElement.classList.contains('jobs-modal-open');
+      const next = document.hidden || document.documentElement.classList.contains('intro-locked') || document.documentElement.classList.contains('jobs-modal-open');
       if (next === locked) return;
       locked = next;
-      if (locked) { stopNavigation(); lenis?.stop(); } else lenis?.start();
+      if (locked) lenis?.stop(); else lenis?.start();
     };
     const lockObserver = new MutationObserver(syncLock);
     lockObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
@@ -149,54 +87,45 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const link = (event.target as Element).closest<HTMLAnchorElement>('a[href^="#"]');
       const hash = link?.getAttribute('href');
-      if (!hash || hash === '#' || link?.target === '_blank' || link?.hasAttribute('download')) return;
-      const target = document.getElementById(fragmentId(hash));
+      if (!hash || hash === '#') return;
+      const target = document.getElementById(hash.slice(1));
       if (!target) return;
       event.preventDefault();
-      stopNavigation();
       if (location.hash !== hash) history.pushState(null, '', hash);
       target.setAttribute('tabindex', '-1');
       target.focus({ preventScroll: true });
-      travel(target);
+      const offset = hash === '#top' ? 0 : -76;
+      const top = Math.max(0, anchorTop(target) + offset);
+      if (lenis) lenis.scrollTo(top, { duration: hash === '#top' ? 1.65 : 1.2, easing: t => 1 - Math.pow(1 - t, 4) });
+      else window.scrollTo({ top, behavior: disabled ? 'instant' : 'smooth' });
     };
     document.addEventListener('click', navigate);
-    const ensureSceneFocus = (control: HTMLElement) => {
+    const revealFocusedScene = (event: FocusEvent) => {
+      const control = event.target as HTMLElement;
       const scene = control.closest<HTMLElement>('.work-scene');
-      if (!scene || control === scene || compact || disabled || getComputedStyle(scene).position !== 'sticky') return;
+      if (!scene || control === scene || compact || disabled) return;
       const rect = control.getBoundingClientRect();
       const hit = document.elementFromPoint(rect.left + rect.width / 2, Math.min(innerHeight - 1, Math.max(0, rect.top + rect.height / 2)));
-      const safeTop = navigationOffset(document.querySelector('.site-header')?.getBoundingClientRect().bottom ?? 0, innerHeight);
-      const safeBottom = innerHeight - 32;
-      if (rect.top >= safeTop && rect.bottom <= safeBottom && hit && scene.contains(hit)) return;
-      const inside = offsetWithin(control, scene) + control.offsetHeight;
-      const top = Math.max(0, anchorTop(scene) + Math.max(-safeTop, inside - safeBottom));
+      if (rect.top >= 76 && rect.bottom <= innerHeight && hit && scene.contains(hit)) return;
+      const inside = rect.bottom - scene.getBoundingClientRect().top;
+      const top = Math.max(0, anchorTop(scene) + Math.max(-76, inside - innerHeight + 32));
       if (lenis) lenis.scrollTo(top, { immediate: true });
       else window.scrollTo({ top, behavior: 'instant' });
     };
-    const revealFocusedScene = (event: FocusEvent) => {
-      const control = event.target as HTMLElement;
-      ensureSceneFocus(control);
-      // Native Tab scrolling may run after focusin. Recheck once, preserving
-      // breathing room for the focus outline and ignoring superseded focus.
-      cancelAnimationFrame(focusFrame);
-      focusFrame = requestAnimationFrame(() => { if (document.activeElement === control) ensureSceneFocus(control); });
-    };
     document.addEventListener('focusin', revealFocusedScene);
-    const interruptKey = (event: KeyboardEvent) => {
-      if ((event.target as Element)?.closest('input, textarea, select, [contenteditable="true"]')) return;
-      if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' ', 'Escape', 'Tab'].includes(event.key)) stopNavigation();
+    let alive = true;
+    const restoreHash = () => {
+      if (!alive || document.documentElement.classList.contains('intro-locked')) return;
+      const target = document.getElementById(location.hash.slice(1) || 'top');
+      if (!target) return;
+      const offset = target.id === 'top' ? 0 : -76;
+      const top = Math.max(0, anchorTop(target) + offset);
+      if (lenis) lenis.scrollTo(top, { immediate: true });
+      else window.scrollTo({ top, behavior: 'instant' });
     };
-    // Capture before Lenis so the next wheel delta starts at the visible
-    // position rather than the previous, far-away programmatic destination.
-    addEventListener('wheel', stopNavigation, { passive: true, capture: true });
-    addEventListener('touchstart', stopNavigation, { passive: true, capture: true });
-    addEventListener('keydown', interruptKey, true);
-    addEventListener('blur', stopNavigation);
-    addEventListener('resize', resize);
-    if (destination.current) resize();
     addEventListener('popstate', restoreHash);
     addEventListener('hashchange', restoreHash);
-    const restoreInitial = () => { if (initialNavigation.current && location.hash && scrollY < 1) restoreHash(); };
+    const restoreInitial = () => { if (location.hash && scrollY < 1) restoreHash(); };
     const hashDeadline = window.setTimeout(restoreInitial, 700);
     document.fonts.ready.then(restoreInitial);
 
@@ -207,19 +136,10 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       document.removeEventListener('click', navigate);
       document.removeEventListener('focusin', revealFocusedScene);
       alive = false;
-      cancelAnimationFrame(restoreFrame);
-      cancelAnimationFrame(focusFrame);
-      clearTimeout(endTimer);
-      removeEventListener('wheel', stopNavigation, true);
-      removeEventListener('touchstart', stopNavigation, true);
-      removeEventListener('keydown', interruptKey, true);
-      removeEventListener('blur', stopNavigation);
-      removeEventListener('resize', resize);
       clearTimeout(hashDeadline);
       removeEventListener('popstate', restoreHash);
       removeEventListener('hashchange', restoreHash);
       lockObserver.disconnect();
-      history.scrollRestoration = previousRestoration;
       document.removeEventListener('visibilitychange', syncLock);
       unsubscribe?.();
       gsap.ticker.remove(update);
@@ -238,7 +158,7 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
     const sections = root.querySelectorAll<HTMLElement>('[data-motion-section]');
 
     if (disabled) {
-      if (revealTargets.length) gsap.set(revealTargets, { clearProps: 'all' });
+      gsap.set(revealTargets, { clearProps: 'all' });
       sections.forEach(section => { section.dataset.motionState = 'visible'; });
       ScrollTrigger.refresh();
       return;
@@ -326,7 +246,7 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       active = false;
       removeEventListener('load', refresh);
       context.revert();
-      if (revealTargets.length) gsap.set(revealTargets, { clearProps: 'all' });
+      gsap.set(revealTargets, { clearProps: 'all' });
       sections.forEach(section => { delete section.dataset.motionState; });
     };
   }, [compact, disabled]);
