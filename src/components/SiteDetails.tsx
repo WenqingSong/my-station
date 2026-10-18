@@ -2,8 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 
 const chapters = [
-  ['top', '01', 'Home'], ['intro', '02', 'Introduction'], ['work', '03', 'Selected work'],
-  ['skills', '04', 'Foundation'], ['about', '05', 'About Arthur'], ['contact', '06', 'Contact']
+  ['top', '01', 'Home'], ['work', '02', 'Selected work'],
+  ['skills', '03', 'Foundation'], ['about', '04', 'About Arthur'], ['contact', '05', 'Contact']
 ];
 
 export default function SiteDetails({ disabled, compact }: { disabled: boolean; compact: boolean }) {
@@ -30,7 +30,7 @@ export default function SiteDetails({ disabled, compact }: { disabled: boolean; 
       for (const item of chapters) {
         if ((document.getElementById(item[0])?.getBoundingClientRect().top ?? Infinity) <= innerHeight * .38) current = item;
       }
-      if (progress > .995) current = chapters[5];
+      if (progress > .995) current = chapters[chapters.length - 1];
       setChapter(previous => previous === current ? previous : current);
       document.querySelectorAll('.site-header nav a').forEach(link => {
         const active = link.getAttribute('href') === `#${current[0]}`;

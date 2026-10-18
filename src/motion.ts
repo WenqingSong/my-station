@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import { gsap } from 'gsap';
@@ -52,6 +52,9 @@ function anchorTop(target: HTMLElement) {
 }
 
 export function useMotionInfrastructure({ disabled, compact }: MotionInfrastructureOptions) {
+  // Persist across viewport/motion-mode changes: only document entry restores
+  // the initial anchor, not every recreation of the scrolling infrastructure.
+  const initialHashPending = useRef(Boolean(location.hash));
   useEffect(() => {
     gsap.defaults({ duration: MOTION.duration.standard, ease: MOTION.ease.standard });
     ScrollTrigger.config({ limitCallbacks: true, ignoreMobileResize: true });
@@ -71,11 +74,16 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
     const update = (time: number) => lenis?.raf(time * 1000);
     const unsubscribe = lenis?.on('scroll', ScrollTrigger.update);
     let locked = false;
+    let initialHashFrame = 0;
     const syncLock = () => {
       const next = document.hidden || document.documentElement.classList.contains('intro-locked') || document.documentElement.classList.contains('jobs-modal-open');
       if (next === locked) return;
       locked = next;
-      if (locked) lenis?.stop(); else lenis?.start();
+      if (locked) lenis?.stop();
+      else {
+        lenis?.start();
+        initialHashFrame = requestAnimationFrame(restoreInitial);
+      }
     };
     const lockObserver = new MutationObserver(syncLock);
     lockObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
@@ -115,17 +123,21 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
     document.addEventListener('focusin', revealFocusedScene);
     let alive = true;
     const restoreHash = () => {
-      if (!alive || document.documentElement.classList.contains('intro-locked')) return;
+      if (!alive || document.documentElement.classList.contains('intro-locked')) return false;
       const target = document.getElementById(location.hash.slice(1) || 'top');
-      if (!target) return;
+      if (!target) return false;
       const offset = target.id === 'top' ? 0 : -76;
       const top = Math.max(0, anchorTop(target) + offset);
       if (lenis) lenis.scrollTo(top, { immediate: true });
       else window.scrollTo({ top, behavior: 'instant' });
+      return true;
     };
     addEventListener('popstate', restoreHash);
     addEventListener('hashchange', restoreHash);
-    const restoreInitial = () => { if (location.hash && scrollY < 1) restoreHash(); };
+    const restoreInitial = () => {
+      if (!initialHashPending.current || !location.hash) return;
+      if (restoreHash()) initialHashPending.current = false;
+    };
     const hashDeadline = window.setTimeout(restoreInitial, 700);
     document.fonts.ready.then(restoreInitial);
 
@@ -137,6 +149,7 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       document.removeEventListener('focusin', revealFocusedScene);
       alive = false;
       clearTimeout(hashDeadline);
+      cancelAnimationFrame(initialHashFrame);
       removeEventListener('popstate', restoreHash);
       removeEventListener('hashchange', restoreHash);
       lockObserver.disconnect();

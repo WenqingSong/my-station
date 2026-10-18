@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import AnimatedContent from './components/AnimatedContent';
-import ScrollFloat from './components/ScrollFloat';
 import SelectedWork from './components/SelectedWork';
 import AboutEditorial from './components/AboutEditorial';
 import SiteDetails from './components/SiteDetails';
@@ -155,17 +153,6 @@ function App() {
       <SiteDetails disabled={disabled} compact={compact} />
       <main>
         <FirstHero projects={projects} paused={complexMotionDisabled} motionDisabled={disabled} reduced={reduced} toggleMotion={() => setMotionPaused(value => !value)} />
-
-        <section className="intro section-shell" id="intro" data-motion-section>
-          <div className="intro-title">
-            <p className="eyebrow">A LITTLE INTRODUCTION</p>
-            <ScrollFloat disabled={complexMotionDisabled}>最近主要在忙这些事情。</ScrollFloat>
-          </div>
-          <AnimatedContent className="intro-aside" distance={60} threshold={.25} disabled={disabled}>
-            <p>目前花时间最多的是 SurgeCart 的订单、秒杀和失败恢复，也在维护 Offer 捕手。使用 AI Agent 开发时遇到的交接问题，让我开始做 Agent Workflow。<br /><br />2026 年 7—8 月，我在杭州智航星辰人工智能科技有限公司做 Go 后端实习，参与企业课程平台开发，跟进 AI 客服系统的问题定位、修复和联调。</p>
-            <a className="round-button" data-magnetic data-cursor="action" href="#about">About me <span aria-hidden="true">↗</span></a>
-          </AnimatedContent>
-        </section>
 
         <SelectedWork projects={projects} compact={compact} disabled={disabled} />
 
