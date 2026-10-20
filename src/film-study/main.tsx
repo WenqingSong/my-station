@@ -3,6 +3,7 @@ import { StrictMode, useEffect, useRef, useState, type MouseEvent } from 'react'
 import { createRoot } from 'react-dom/client';
 import FirstHero from '../components/FirstHero';
 import { portraitFocalPoint } from './crop';
+import { useFilmPortal } from './useFilmPortal';
 import '../styles.css';
 import '../components/first-hero.css';
 import './study.css';
@@ -25,6 +26,7 @@ const posterTime = 1.674;
 function FilmStudy() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const stageRef = useRef<HTMLElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
   const manuallyPaused = useRef(still);
   const explicitlyPlaying = useRef(false);
   const lastTime = useRef(0);
@@ -37,6 +39,18 @@ function FilmStudy() {
   const [elapsed, setElapsed] = useState(0);
   const [loops, setLoops] = useState(0);
   const [heroPaused, setHeroPaused] = useState(false);
+  const [pointerInside, setPointerInside] = useState(false);
+  const { phase, enterHero, returnToFilm } = useFilmPortal(stageRef, heroRef, reduced);
+  const filmActive = phase !== 'hero';
+  const heroInactive = heroPaused || reduced || phase === 'film';
+
+  useEffect(() => {
+    const hide = () => setPointerInside(false);
+    const leave = (event: PointerEvent) => { if (!event.relatedTarget) hide(); };
+    window.addEventListener('blur', hide);
+    document.addEventListener('pointerout', leave);
+    return () => { window.removeEventListener('blur', hide); document.removeEventListener('pointerout', leave); };
+  }, []);
 
   useEffect(() => {
     const resetSound = () => {
@@ -87,7 +101,7 @@ function FilmStudy() {
     if (!video || !stage) return;
     let visible = true, active = true;
     const sync = () => {
-      if (!visible || document.hidden || manuallyPaused.current || (reduced && !explicitlyPlaying.current)) video.pause();
+      if (!filmActive || !visible || document.hidden || manuallyPaused.current || (reduced && !explicitlyPlaying.current)) video.pause();
       else void video.play().catch(() => { if (active) setPaused(true); });
     };
     const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; sync(); }, { threshold: 0 });
@@ -95,7 +109,7 @@ function FilmStudy() {
     document.addEventListener('visibilitychange', sync);
     sync();
     return () => { active = false; observer.disconnect(); document.removeEventListener('visibilitychange', sync); video.pause(); };
-  }, [reduced]);
+  }, [reduced, filmActive]);
 
   const togglePlayback = () => {
     const video = videoRef.current;
@@ -121,8 +135,9 @@ function FilmStudy() {
     if (anchor && anchor.hash !== '#top') anchor.href = '/' + anchor.hash;
   };
 
-  return <main className="film-study">
-    <a className="film-skip" href="#top">跳至个人介绍</a>
+  return <main className="film-study" data-phase={phase} data-pointer-inside={pointerInside}
+    onPointerMove={event => { if (event.pointerType === 'mouse') setPointerInside(true); }}
+    onPointerLeave={() => setPointerInside(false)}>
     <section className={`film-stage${ready ? ' is-ready' : ''}`} ref={stageRef} aria-label="个人灵感影片，默认静音循环播放">
       <img className="film-poster" src="/film-study/media/poster.jpg" alt="" aria-hidden="true" />
       <video ref={videoRef} className="film-video" src={`/film-study/media/${source}.mp4`} poster="/film-study/media/poster.jpg"
@@ -146,6 +161,11 @@ function FilmStudy() {
           lastTime.current = time;
           if (review) setElapsed(time);
         }} />
+      <button className="film-enter" type="button" onClick={enterHero} aria-label="进入个人主页">
+        <span className="film-entry-glass" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14m-6-6 6 6 6-6" /></svg>
+        </span>
+      </button>
       {!failed && <div className="film-controls" role="group" aria-label="影片控制">
         <button className="film-control film-sound" type="button" onClick={toggleSound}
           aria-label="影片声音" aria-pressed={!muted}>
@@ -168,8 +188,11 @@ function FilmStudy() {
         }} />
       </aside>}
     </section>
-    <div className="film-hero-context" onClick={followHero}>
-      <FirstHero projects={projects} paused={heroPaused || reduced} motionDisabled={heroPaused || reduced} reduced={reduced} toggleMotion={() => setHeroPaused(value => !value)} />
+    <div className="film-hero-context" ref={heroRef} tabIndex={-1} role="region" aria-label="Arthur 个人主页" onClick={followHero}>
+      <button className="film-return" type="button" onClick={returnToFilm} aria-label="返回全屏影片">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6" /></svg>
+      </button>
+      <FirstHero projects={projects} paused={heroInactive} motionDisabled={heroInactive} reduced={reduced} toggleMotion={() => setHeroPaused(value => !value)} />
     </div>
   </main>;
 }
