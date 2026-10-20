@@ -6,7 +6,8 @@ import AboutEditorial from './components/AboutEditorial';
 import SiteDetails from './components/SiteDetails';
 import FirstHero from './components/FirstHero';
 import JobsModal from './components/JobsModal';
-import Opening from './components/Opening';
+import FilmOpening from './components/film/FilmOpening';
+import { useFilmPortal } from './components/film/useFilmPortal';
 import { useCompactMotion, useMotionInfrastructure } from './motion';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -133,6 +134,10 @@ function App() {
     setShowJobsModal(false);
   }, []);
 
+  const filmRef = useRef<HTMLElement>(null);
+  const siteRef = useRef<HTMLDivElement>(null);
+  const { phase, enterHero, returnToFilm } = useFilmPortal(filmRef, siteRef, reduced || reviewStill, handleOpeningComplete);
+
   useMotionInfrastructure({ disabled, compact });
 
   useEffect(() => setMotionPaused(reduced), [reduced]);
@@ -143,16 +148,22 @@ function App() {
 
   return (
     <>
-      <Opening reduced={reduced || reviewStill} onComplete={handleOpeningComplete} />
+      <div className="film-study" data-phase={phase}>
+      <FilmOpening stageRef={filmRef} active={phase !== 'hero'} reduced={reduced || reviewStill} enterHero={enterHero} />
+      <div className="film-hero-context" ref={siteRef} tabIndex={-1} role="region" aria-label="Arthur 个人主页">
       <a className="skip-link" href="#work">跳至项目</a>
       <header className="site-header restored-site-header">
         <a className="brand" href="#top" aria-label="Arthur，返回首页"><span className="restored-brand-mark" aria-hidden="true" />ARTHUR / 27</a>
-        <nav aria-label="主导航">{[['top', 'Index'], ['work', 'Work'], ['about', 'About'], ['contact', 'Contact']].map(([id, label]) => <a href={`#${id}`} key={id}>{label}</a>)}</nav>
+        <nav aria-label="主导航">{[['top', 'Index'], ['work', 'Work'], ['about', 'About'], ['contact', 'Contact']].map(([id, label]) => <a href={`#${id}`} key={id}>{label}</a>)}
+          <button className="film-return" type="button" onClick={returnToFilm} aria-label="返回全屏影片">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6" /></svg>
+          </button>
+        </nav>
         <span className="restored-availability">Graduating · 2027</span>
       </header>
       <SiteDetails disabled={disabled} compact={compact} />
       <main>
-        <FirstHero projects={projects} paused={complexMotionDisabled} motionDisabled={disabled} reduced={reduced} toggleMotion={() => setMotionPaused(value => !value)} />
+        <FirstHero projects={projects} paused={complexMotionDisabled || phase === 'film'} motionDisabled={disabled} reduced={reduced} toggleMotion={() => setMotionPaused(value => !value)} />
 
         <SelectedWork projects={projects} compact={compact} disabled={disabled} />
 
@@ -189,6 +200,8 @@ function App() {
           </div>
         </section>
       </main>
+      </div>
+      </div>
       {showJobsModal && <JobsModal onClose={closeJobsModal} disabled={disabled} />}
     </>
   );

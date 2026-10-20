@@ -1,6 +1,16 @@
 # Full-screen film study — glass portal
 
-Local-only preview, 2026-10-20. Not a production replacement.
+## Superseded by the production opening
+
+The approved film entrance is now mounted by `src/App.tsx` at **`/`**, followed by the complete personal website. The old Hello implementation is removed. The development-only `/film-study/` entry imports the same app, not a separate partial site.
+
+The original film and poster are tracked in `public/media/` and copied into `dist/media/` by the standard build. No external storage service or manual video upload is required. `npm run build` first verifies the original film hash and poster. The existing Docker build includes these files.
+
+Current implementation: `src/components/film/`. Current verification: `qa/film-production.test.mjs` and `qa/film-portal.test.mjs`.
+
+**Everything below is the historical trial record at commit `1310ee8`, not the current deployment instructions.**
+
+Local-only preview record, 2026-10-20.
 
 ## Baseline
 

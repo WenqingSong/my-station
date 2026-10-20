@@ -10,3 +10,5 @@ qa.html
 .env.*
 .DS_Store
 *.log
+film-study/media
+film-study/captures

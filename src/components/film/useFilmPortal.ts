@@ -6,10 +6,13 @@ export function useFilmPortal(
   stageRef: RefObject<HTMLElement>,
   heroRef: RefObject<HTMLDivElement>,
   reduced: boolean,
+  onEntered: () => void,
 ) {
   const [phase, setPhase] = useState<PortalPhase>('film');
   const phaseRef = useRef<PortalPhase>('film');
   const requestRef = useRef<(destination: PortalDestination) => void>(() => {});
+  const onEnteredRef = useRef(onEntered);
+  onEnteredRef.current = onEntered;
 
   useLayoutEffect(() => {
     const stage = stageRef.current, hero = heroRef.current;
@@ -25,8 +28,16 @@ export function useFilmPortal(
     const wheelIntent = new WheelIntent();
     const updatePhase = (next: PortalPhase) => { phaseRef.current = next; setPhase(next); };
     const controlTarget = (target: EventTarget | null) => target instanceof Element && Boolean(target.closest('.film-controls, .film-review'));
-    const lock = () => html.classList.add('film-portal-locked');
-    const alignTop = () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    const modalOpen = () => Boolean(document.querySelector('[aria-modal="true"]'));
+    const lock = () => {
+      html.classList.add('film-portal-locked', 'intro-locked');
+      // Stop Lenis synchronously, before its next RAF or wheel listener.
+      window.dispatchEvent(new Event('film:lock'));
+    };
+    const alignTop = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      window.dispatchEvent(new Event('film:scroll-reset'));
+    };
 
     const settle = (destination: PortalDestination, focus = true) => {
       timeline?.kill(); timeline = undefined;
@@ -41,7 +52,8 @@ export function useFilmPortal(
         if (focus) hero.focus({ preventScroll: true });
         stage.inert = true;
         stage.setAttribute('aria-hidden', 'true');
-        html.classList.remove('film-portal-locked');
+        html.classList.remove('film-portal-locked', 'intro-locked');
+        window.dispatchEvent(new Event('film:lock'));
       } else {
         stage.inert = false;
         stage.removeAttribute('aria-hidden');
@@ -52,9 +64,11 @@ export function useFilmPortal(
       }
       updatePhase(destination);
       guard.land(performance.now());
+      if (destination === 'hero') onEnteredRef.current();
     };
 
     const travel = (destination: PortalDestination) => {
+      if (modalOpen()) return;
       const next = nextPortalPhase(phaseRef.current, destination);
       if (next === phaseRef.current) return;
       guard.start(performance.now());
@@ -76,7 +90,7 @@ export function useFilmPortal(
     requestRef.current = travel;
 
     const wheel = (event: WheelEvent) => {
-      if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+      if (modalOpen() || controlTarget(event.target) || event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
       const now = performance.now(), top = window.scrollY <= 1;
       if (now - lastWheel > 200) { wheelStartedAtTop = top; wheelIntent.reset(); }
       lastWheel = now;
@@ -96,11 +110,11 @@ export function useFilmPortal(
       if (event.touches.length !== 1) return;
       touchY = event.touches[0].clientY; touchX = event.touches[0].clientX;
       touchStartedAtTop = window.scrollY <= 1;
-      touchControl = controlTarget(event.target);
+      touchControl = controlTarget(event.target) || modalOpen();
       touchConsumed = false;
     };
     const touchMove = (event: TouchEvent) => {
-      if (event.touches.length !== 1) return;
+      if (event.touches.length !== 1 || modalOpen()) return;
       const current = phaseRef.current;
       if (touchConsumed || current === 'entering' || current === 'returning') { event.preventDefault(); return; }
       if (touchControl) return;
@@ -117,11 +131,23 @@ export function useFilmPortal(
     const touchEnd = () => { touchConsumed = false; };
 
     const keyDown = (event: KeyboardEvent) => {
+      if (modalOpen()) return;
       if (transitionKey === event.key) { event.preventDefault(); return; }
-      if (event.ctrlKey || event.metaKey || event.altKey || controlTarget(event.target)) return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
       const target = event.target as HTMLElement;
       if (target.isContentEditable || target.matches('input,textarea,select')) return;
       const current = phaseRef.current;
+      // Only the film's three controls are reachable while the site is inert.
+      if (current === 'film' && event.key === 'Tab') {
+        const controls = Array.from(stage.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
+        const first = controls[0], last = controls[controls.length - 1];
+        if (!stage.contains(document.activeElement) || (!event.shiftKey && document.activeElement === last)) {
+          event.preventDefault(); (event.shiftKey ? last : first)?.focus(); return;
+        }
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        return;
+      }
+      if (controlTarget(event.target) && event.key !== 'Escape') return;
       if (['entering', 'returning'].includes(current) && [' ', 'ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', 'Escape'].includes(event.key)) { event.preventDefault(); return; }
       if (current === 'film' && [' ', 'ArrowDown', 'PageDown', 'End', 'Escape'].includes(event.key)) {
         event.preventDefault(); transitionKey = event.key; travel('hero');
@@ -139,9 +165,9 @@ export function useFilmPortal(
     const restore = () => settle('film', false);
     if (phaseRef.current === 'hero' || phaseRef.current === 'entering') settle('hero', false);
     else settle('film', false);
-    window.addEventListener('wheel', wheel, { passive: false });
+    window.addEventListener('wheel', wheel, { passive: false, capture: true });
     window.addEventListener('touchstart', touchStart, { passive: true });
-    window.addEventListener('touchmove', touchMove, { passive: false });
+    window.addEventListener('touchmove', touchMove, { passive: false, capture: true });
     window.addEventListener('touchend', touchEnd);
     window.addEventListener('touchcancel', touchEnd);
     window.addEventListener('keydown', keyDown);
@@ -154,10 +180,11 @@ export function useFilmPortal(
       gsap.set([stage, hero], { clearProps: 'transform,opacity,willChange' });
       hero.inert = false; stage.inert = false;
       hero.removeAttribute('aria-hidden'); stage.removeAttribute('aria-hidden');
-      html.classList.remove('film-portal-locked');
+      html.classList.remove('film-portal-locked', 'intro-locked');
+      window.dispatchEvent(new Event('film:lock'));
       history.scrollRestoration = previousRestoration;
-      window.removeEventListener('wheel', wheel); window.removeEventListener('touchstart', touchStart);
-      window.removeEventListener('touchmove', touchMove); window.removeEventListener('keydown', keyDown);
+      window.removeEventListener('wheel', wheel, true); window.removeEventListener('touchstart', touchStart);
+      window.removeEventListener('touchmove', touchMove, true); window.removeEventListener('keydown', keyDown);
       window.removeEventListener('touchend', touchEnd); window.removeEventListener('touchcancel', touchEnd);
       window.removeEventListener('keyup', keyUp); window.removeEventListener('blur', blur);
       window.removeEventListener('resize', resize); window.removeEventListener('pageshow', restore);

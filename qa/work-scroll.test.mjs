@@ -66,8 +66,8 @@ test('Introduction is merged without losing its anchor or internship facts', () 
   }
 });
 
-test('opening, Hero, About and Contact markup match the rollback baseline', () => {
-  for (const file of ['src/components/FirstHero.tsx', 'src/components/Opening.tsx', 'src/components/opening-sequence.ts', 'src/components/AboutEditorial.tsx', 'src/components/about-editorial.css']) {
+test('Hero, About and Contact markup match the rollback baseline', () => {
+  for (const file of ['src/components/FirstHero.tsx', 'src/components/AboutEditorial.tsx', 'src/components/about-editorial.css']) {
     assert.equal(source(file), execFileSync('git', ['show', `aa81238:${file}`], { encoding: 'utf8' }));
   }
   const originalApp = execFileSync('git', ['show', 'aa81238:src/App.tsx'], { encoding: 'utf8' });

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { nextPortalPhase, LandingGuard, canReturnToFilm, WheelIntent } from '../src/film-study/portal-policy.ts';
+import { nextPortalPhase, LandingGuard, canReturnToFilm, WheelIntent } from '../src/components/film/portal-policy.ts';
 
 test('only complete film/Hero states can initiate travel; repeated/reverse inputs cannot queue', () => {
   assert.equal(nextPortalPhase('film', 'hero'), 'entering');
@@ -52,7 +52,7 @@ test('slow trackpads, line wheels and page wheels reach a consistent intent thre
 });
 
 test('portal scopes scroll interception, restores state, protects media controls and aligns zero', () => {
-  const hook = readFileSync(new URL('../src/film-study/useFilmPortal.ts', import.meta.url), 'utf8');
+  const hook = readFileSync(new URL('../src/components/film/useFilmPortal.ts', import.meta.url), 'utf8');
   for (const event of ['wheel', 'touchstart', 'touchmove', 'touchend', 'touchcancel', 'keydown', 'keyup', 'blur', 'resize', 'pageshow']) {
     assert.ok(hook.includes(`addEventListener('${event}'`));
     assert.ok(hook.includes(`removeEventListener('${event}'`));
@@ -63,7 +63,7 @@ test('portal scopes scroll interception, restores state, protects media controls
   assert.match(hook, /history\.scrollRestoration = previousRestoration/);
   assert.match(hook, /if \(transitionKey === event.key\)/);
   assert.match(hook, /if \(touchConsumed \|\| current === 'entering'/);
-  const css = readFileSync(new URL('../src/film-study/study.css', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../src/components/film/film.css', import.meta.url), 'utf8');
   assert.doesNotMatch(css, /film-peek/);
   assert.match(css, /height:100dvh/);
   assert.match(css, /:has\(:focus-visible\)/);

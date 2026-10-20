@@ -1,3 +1,4 @@
+// Shared by the production opening and its isolated policy tests.
 export type PortalPhase = 'film' | 'entering' | 'hero' | 'returning';
 export type PortalDestination = 'film' | 'hero';
 

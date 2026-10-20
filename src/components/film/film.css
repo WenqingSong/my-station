@@ -1,4 +1,4 @@
-/* Scoped to the independent study. No changes to the main site's scroll system. */
+/* Production film entrance. The full site keeps its normal layout underneath. */
 html:has(.film-study){scroll-behavior:auto;background:#171813;overscroll-behavior:none}
 html.film-portal-locked,html.film-portal-locked body{overflow:hidden;overscroll-behavior:none}
 .film-study{--film-x:50%;--film-y:40%;--glass-ease:cubic-bezier(.2,.7,.2,1);background:#171813;min-height:100dvh}
@@ -13,8 +13,8 @@ html.film-portal-locked,html.film-portal-locked body{overflow:hidden;overscroll-
 .film-controls{position:absolute;z-index:3;bottom:max(28px,env(safe-area-inset-bottom));right:max(28px,env(safe-area-inset-right));display:flex;gap:2px;padding:3px;border-radius:28px;opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity .24s var(--glass-ease),transform .36s var(--glass-ease)}
 .film-control{width:44px;height:44px;display:grid;place-items:center;color:#fff;border:0;border-radius:50%;background:transparent;transition:background .2s,transform .2s;touch-action:manipulation;cursor:pointer}
 .film-control svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 1px 3px #0008)}
-.film-study[data-pointer-inside=true] .film-entry-glass,.film-stage:has(:focus-visible) .film-entry-glass{opacity:1;transform:translate(-50%,0) scale(1)}
-.film-study[data-pointer-inside=true] .film-controls,.film-stage:has(:focus-visible) .film-controls{opacity:1;transform:none;pointer-events:auto}
+.film-stage[data-pointer-inside=true] .film-entry-glass,.film-stage:has(:focus-visible) .film-entry-glass{opacity:1;transform:translate(-50%,0) scale(1)}
+.film-stage[data-pointer-inside=true] .film-controls,.film-stage:has(:focus-visible) .film-controls{opacity:1;transform:none;pointer-events:auto}
 @media(hover:hover){.film-control:hover{background:#ffffff20}.film-enter:hover .film-entry-glass{background-color:#16161638}.film-return:hover{background:#10101020}}
 .film-control:active{background:#ffffff30;transform:scale(.92)}
 .film-enter:active .film-entry-glass{transform:translate(-50%,2px) scale(.93)}
@@ -26,13 +26,14 @@ html.film-portal-locked,html.film-portal-locked body{overflow:hidden;overscroll-
 .film-study[data-phase=hero] .film-stage{visibility:hidden;pointer-events:none}
 .film-study[data-phase=entering] .film-stage,.film-study[data-phase=returning] .film-stage{pointer-events:none}
 .film-study[data-phase=entering] .film-controls,.film-study[data-phase=entering] .film-entry-glass,.film-study[data-phase=returning] .film-controls,.film-study[data-phase=returning] .film-entry-glass{opacity:0;pointer-events:none}
-.film-return{position:absolute;top:max(22px,env(safe-area-inset-top));right:4vw;z-index:10;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;color:#101010;border-color:#10101026;background-color:#f1efe970;cursor:pointer;transition:background .2s}
+.film-return{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:50%;color:#f1efe9;border-color:#ffffff30;background-color:#ffffff10;cursor:pointer;transition:background .2s,opacity .2s}
 .film-return svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.film-return:focus-visible{outline-color:#2457ff}
+.film-return:focus-visible{outline-color:#b8ff39}
+.site-header.is-scrolled .film-return{visibility:hidden;pointer-events:none}
 .film-review{position:absolute;z-index:4;top:16px;left:16px;width:min(470px,calc(100% - 32px));padding:12px 14px;background:#000d;color:white;font:11px/1.6 ui-monospace,monospace;border:1px solid #fff4}
 .film-review output{display:block}.film-review input{display:block;width:100%;margin:10px 0 0;accent-color:#fff;min-height:24px}
 @media(max-aspect-ratio:3/4){.film-study{--film-y:50%}.film-stage{--film-x:var(--film-mobile-x,20%)}}
-@media(max-width:620px){.film-controls{right:16px;bottom:max(20px,env(safe-area-inset-bottom))}.film-entry-glass{width:56px;height:56px;bottom:max(20px,env(safe-area-inset-bottom))}.film-return{right:20px}}
+@media(max-width:620px){.film-controls{right:16px;bottom:max(20px,env(safe-area-inset-bottom))}.film-entry-glass{width:56px;height:56px;bottom:max(20px,env(safe-area-inset-bottom))}.film-study .restored-site-header nav a{padding-inline:10px}}
 @media(hover:none),(pointer:coarse){.film-entry-glass{opacity:1;transform:translate(-50%,0)}.film-controls{opacity:1;transform:none;pointer-events:auto}}
 @media(prefers-reduced-motion:reduce){.film-entry-glass,.film-controls,.film-control,.film-return{transition:none}}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.film-entry-glass,.film-controls{background:#171813b8}}

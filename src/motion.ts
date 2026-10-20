@@ -69,7 +69,8 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       syncTouch: false,
       wheelMultiplier: 0.86,
       anchors: false,
-      stopInertiaOnNavigate: true
+      stopInertiaOnNavigate: true,
+      virtualScroll: ({ event }) => !event.defaultPrevented
     });
     const update = (time: number) => lenis?.raf(time * 1000);
     const unsubscribe = lenis?.on('scroll', ScrollTrigger.update);
@@ -88,6 +89,12 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
     const lockObserver = new MutationObserver(syncLock);
     lockObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     document.addEventListener('visibilitychange', syncLock);
+    window.addEventListener('film:lock', syncLock);
+    const resetFilmScroll = () => {
+      lenis?.scrollTo(0, { immediate: true, force: true });
+      ScrollTrigger.update();
+    };
+    window.addEventListener('film:scroll-reset', resetFilmScroll);
     syncLock();
 
     // Native links stay functional without JS; enhanced navigation respects motion preferences.
@@ -154,6 +161,8 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       removeEventListener('hashchange', restoreHash);
       lockObserver.disconnect();
       document.removeEventListener('visibilitychange', syncLock);
+      window.removeEventListener('film:lock', syncLock);
+      window.removeEventListener('film:scroll-reset', resetFilmScroll);
       unsubscribe?.();
       gsap.ticker.remove(update);
       lenis?.destroy();

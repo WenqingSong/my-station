@@ -11,6 +11,6 @@ dist/
 .sites-runtime/
 .openai/
 .Trash-*/
-# User-supplied film: local study only, pending public display permission.
+# Historical trial copies/captures. Production media is tracked in public/media.
 film-study/media/
 film-study/captures/

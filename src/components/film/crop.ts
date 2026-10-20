@@ -1,5 +1,5 @@
 // Shot-boundary crop adjustments, inspected against the original 480 × 360 film.
-// This is framing, not a tracking/panning effect. Wide ensembles still lose context.
+// Production framing, not a tracking/panning effect. Wide ensembles still lose context.
 export function portraitFocalPoint(time: number): number {
   if (time < 6.780) return 20;
   if (time >= 17.661 && time < 21.009) return 22;
