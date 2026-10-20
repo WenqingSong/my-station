@@ -11,3 +11,6 @@ dist/
 .sites-runtime/
 .openai/
 .Trash-*/
+# User-supplied film: local study only, pending public display permission.
+film-study/media/
+film-study/captures/

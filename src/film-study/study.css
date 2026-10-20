@@ -1,0 +1,19 @@
+/* Deliberately scoped to /film-study/. No motion or layout changes to main. */
+html:has(.film-study){scroll-behavior:auto;background:#171813}
+.film-study{--film-peek:clamp(24px,3.5svh,40px);--film-x:50%;--film-y:40%;background:#f1efe9}
+.film-stage{position:relative;height:calc(100svh - var(--film-peek));min-height:260px;background:#171813;overflow:hidden;isolation:isolate}
+.film-video,.film-poster{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:cover;object-position:var(--film-x) var(--film-y);display:block;pointer-events:none}
+.film-video{opacity:0}.film-stage.is-ready .film-video{opacity:1}
+.film-controls{position:absolute;z-index:2;bottom:max(16px,env(safe-area-inset-bottom));right:max(16px,env(safe-area-inset-right));display:flex;gap:2px;padding:3px;border:1px solid #ffffff26;border-radius:28px;background:#12121280}
+.film-control{width:44px;height:44px;display:grid;place-items:center;color:#efefed;border:0;border-radius:50%;background:transparent;transition:background .2s,color .2s;touch-action:manipulation}
+.film-control svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
+@media(hover:hover){.film-control:hover{background:#ffffff1c;color:#fff}}
+.film-control:active{background:#ffffff30}
+.film-control:focus-visible{outline:2px solid white;outline-offset:2px}
+.film-hero-context{position:relative;background:#f1efe9}
+.film-skip{position:fixed;top:12px;left:12px;z-index:100;padding:12px 20px;background:#f1efe9;color:#101010;transform:translateY(-160%)}
+.film-skip:focus{transform:none;outline:2px solid #2457ff;outline-offset:3px}
+.film-review{position:absolute;z-index:4;bottom:16px;left:16px;width:min(470px,calc(100% - 132px));padding:12px 14px;background:#000d;color:white;font:11px/1.6 ui-monospace,monospace;border:1px solid #fff4}
+.film-review output{display:block}.film-review input{display:block;width:100%;margin:10px 0 0;accent-color:#fff;min-height:24px}
+@media(max-aspect-ratio:3/4){.film-study{--film-peek:24px;--film-y:50%}.film-stage{--film-x:var(--film-mobile-x,20%)}}
+@media(prefers-reduced-motion:reduce){.film-control{transition:none}}
