@@ -12,3 +12,5 @@ qa.html
 *.log
 film-study/media
 film-study/captures
+.secrets
+**/*.asset-part

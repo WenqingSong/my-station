@@ -3,11 +3,21 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22.18.0 <23"
+  },
   "scripts": {
+    "assets:sync": "node scripts/sync-assets.mjs",
+    "assets:verify": "node scripts/sync-assets.mjs --check",
+    "predev": "npm run assets:sync",
     "dev": "vite",
-    "prebuild": "node scripts/verify-film.mjs",
+    "prebuild": "npm run assets:sync && node scripts/verify-film.mjs",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "postbuild": "node scripts/sync-assets.mjs --check --dist",
+    "preview": "vite preview",
+    "image:build": "node scripts/docker-build.mjs",
+    "test": "node --test qa/*.test.mjs",
+    "test:assets": "node --test qa/assets-sync.test.mjs"
   },
   "dependencies": {
     "gsap": "^3.13.0",
@@ -19,6 +29,7 @@
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
+    "cos-nodejs-sdk-v5": "3.0.0",
     "typescript": "^5.7.3",
     "vite": "^6.1.0"
   }

@@ -14,3 +14,5 @@ dist/
 # Historical trial copies/captures. Production media is tracked in public/media.
 film-study/media/
 film-study/captures/
+.secrets/
+*.asset-part

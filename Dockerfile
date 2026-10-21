@@ -11,6 +11,15 @@ RUN npm ci
 
 # 复制源码并构建（产物输出到 /app/dist）
 COPY . .
+
+# COS credentials only exist for this build step. They are never ARG/ENV
+# instructions, copied files, or available in the final Nginx image.
+# A complete, hash-verified local cache can build offline without credentials.
+RUN --mount=type=secret,id=cos_credentials,env=COS_CREDENTIALS_JSON \
+    --mount=type=secret,id=cos_secret_id,env=COS_SECRET_ID \
+    --mount=type=secret,id=cos_secret_key,env=COS_SECRET_KEY \
+    --mount=type=secret,id=cos_session_token,env=COS_SESSION_TOKEN \
+    npm run assets:sync
 RUN npm run build
 
 # ---------- serve ----------

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "revision": "27de69c",
+  "bucket": "my-station-1320839659",
+  "region": "ap-guangzhou",
+  "prefix": "site-assets/27de69c",
+  "files": [
+    { "path": "media/think-different.mp4", "bytes": 3537167, "sha256": "d86d1e28f4195f0c037870642ec6e449db87b29a2fff36227c89c321d45a0f09" },
+    { "path": "media/think-different-poster.jpg", "bytes": 24016, "sha256": "1dc8a5a89f48eca7aafd774bb99c403a97455885b1e430d6a7c12e963833cfed" },
+    { "path": "arthur-editorial-640.webp", "bytes": 18370, "sha256": "ae235e683f3137764da71be19ba9bafd9c99ccac7611108df5bfeba921e8ed66" },
+    { "path": "arthur-editorial-640.jpg", "bytes": 71378, "sha256": "0261f1f70bf22cd635a6189031000681a07c205d4688b701480e186ec93f0c8c" },
+    { "path": "arthur-editorial-960.webp", "bytes": 33160, "sha256": "f473dd700e5348b69aedec43a0cdef1a4e3332ccd1d680256e28a30a0c1adcfe" },
+    { "path": "arthur-editorial-960.jpg", "bytes": 140977, "sha256": "ac16a06ab73cfe751a1c8302a08c61e06937a62fa0ce6aa9397ba11c98c791fb" },
+    { "path": "arthur-editorial-1440.webp", "bytes": 69406, "sha256": "ee93df356715df7141e00410eb9ebc2dadf14e755bf29d4ccee6c9ca38051b94" },
+    { "path": "arthur-editorial-1440.jpg", "bytes": 324460, "sha256": "186e73807f74fab50edd97bcf0c5b127240faea860cd298cd59c3002041afec3" },
+    { "path": "arthur-editorial-2160.webp", "bytes": 218706, "sha256": "722c6463246f6faa8de039328c7187677a63808f5a8ff927cfff86c4e63dc13d" },
+    { "path": "arthur-editorial-2160.jpg", "bytes": 746650, "sha256": "5cb05cac4ca83bd94855718846002329d88e5ac056a3eeef86d228194696bf27" }
+  ]
+}

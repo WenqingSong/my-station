@@ -65,7 +65,7 @@ test('deployable media exactly matches original; missing files fail before build
   try {
     assert.throws(() => verifyFilm(pathToFileURL(temporary + '/')), /ENOENT/);
   } finally { rmSync(temporary, { recursive: true }); }
-  assert.match(read('package.json'), /"prebuild": "node scripts\/verify-film.mjs"/);
+  assert.match(read('package.json'), /"prebuild": "npm run assets:sync && node scripts\/verify-film.mjs"/);
   assert.match(read('Dockerfile'), /COPY --from=builder \/app\/dist/);
   assert.match(read('nginx.conf'), /location \/media\/ \{[\s\S]*?try_files \$uri =404/);
 });

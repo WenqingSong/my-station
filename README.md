@@ -4,7 +4,7 @@ Arthur 的个人网站，基于 React、TypeScript、Vite、GSAP 和 Lenis。
 
 ## 本地运行
 
-使用 Node.js 22 LTS 和 npm。
+使用 Node.js 22（至少 22.18）和 npm，版本入口为 `.nvmrc`。Docker 与 CNB 同样使用 Node 22；不要求日常开发运行在容器中。
 
 ```sh
 npm ci
@@ -18,11 +18,13 @@ npm run build
 npm run preview
 ```
 
-构建产物位于 `dist/`，可部署到静态网站托管服务。当前项目无服务端、数据库或环境变量依赖。
+构建产物位于 `dist/`，可部署到静态网站托管服务。运行时无 Node.js 服务端、数据库或 COS 凭据依赖。缺少素材的开发/构建环境需要临时只读 COS 授权，详见 [素材同步与镜像构建](docs/assets.md)。
 
 正式首页 **`/` 已使用全屏视频开场**，原多语言 Hello 已移除。点击画面、向下滚动或按 Escape 进入完整网站；导航末尾的上箭头可返回影片。每次刷新默认静音，只有主动操作声音按钮才开启声音。
 
-原视频（保留音轨）和封面已随仓库提交到 `public/media/`，普通构建会将它们复制到 `dist/media/`，现有 Dockerfile 也会包含它们。无需额外对象存储或手动上传素材。构建前会校验原片 SHA-256，缺少资源会直接失败，不会静默发布一个缺视频的网站。
+视频（保留音轨）、封面和 8 张响应式职业照由 `assets/manifest.json` 锁定 COS 版本、对象路径、字节数与 SHA-256。`npm run dev` 和 `npm run build` 会先检查本地副本，仅下载缺失或损坏的文件；有效缓存不需要网络或凭据。构建后再检查 `dist/` 中全部 10 个素材，避免漏打包。
+
+现有 Git 素材副本暂作迁移兼容保留：在确认 CNB 远程构建也能获取只读授权并完成冷构建前，不提前取消追踪，以免破坏已有自动发布。COS 同步已经可用于空素材目录，并不依赖这些副本才能工作。
 
 验收命令：`npm run build && node --test qa/*.test.mjs`。应测试 `npm run preview` 的根地址 `/`，而非仅检查旧试映路径。
 
@@ -36,6 +38,9 @@ npm run preview
 - `src/components/film/`：正式视频开场、切换状态机、输入与静音控制。
 - `src/styles.css`、`src/components/*.css`：视觉与响应式样式。
 - `public/`：职业照、本地字体、原片与影片封面。
+- `assets/manifest.json`：固定版本素材清单，无密钥、无签名链接。
+- `scripts/sync-assets.mjs`：增量同步与完整性校验；只下载，不上传或修改云端权限。
+- `scripts/docker-build.mjs`：将现有环境授权以 BuildKit secret 传给构建阶段。
 
 网站支持手机布局、键盘导航、动效暂停与 `prefers-reduced-motion`。邮箱及电话链接会调用访客设备的邮件或电话应用，不会由网站自动发送消息。
 

@@ -47,7 +47,7 @@ main:
         - name: docker build
           script: |
             set -e
-            docker build \
+            npm run image:build -- \
               -t "${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:${CNB_COMMIT_SHORT}" \
               -t "${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest" \
               .
