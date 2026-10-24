@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
+import { assetCredentialEnvironment } from './lib/asset-credentials.mjs';
 
 export function buildArguments(args, env) {
   const secrets = [];
@@ -15,7 +16,13 @@ export function buildArguments(args, env) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const child = spawn('docker', buildArguments(process.argv.slice(2), process.env), { stdio: 'inherit' });
-  child.on('error', () => { console.error('Unable to start Docker. Start Docker Desktop before building.'); process.exitCode = 1; });
-  child.on('exit', code => { process.exitCode = code ?? 1; });
+  try {
+    const env = assetCredentialEnvironment();
+    const child = spawn('docker', buildArguments(process.argv.slice(2), env), { stdio: 'inherit', env });
+    child.on('error', () => { console.error('Unable to start Docker. Start Docker Desktop before building.'); process.exitCode = 1; });
+    child.on('exit', code => { process.exitCode = code ?? 1; });
+  } catch {
+    console.error('Unable to load COS build credentials from the configured keychain.');
+    process.exitCode = 1;
+  }
 }

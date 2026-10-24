@@ -19,6 +19,8 @@ npm run dev
 
 `predev` / `prebuild` 自动同步，可不用单独运行同步命令。有效缓存直接复用，可离线构建。缓存损坏会重新下载。`npm run assets:verify` 只检查、不修复；构建后的 `postbuild` 同样检查 `dist/`。
 
+`npm run assets:pull` 会重新从 COS 拉取清单内全部 10 个素材，即使本地缓存有效。仍然逐个校验并原子替换；失败时保留原文件。它不追踪远程“最新”对象、不改变素材版本，也不能与 `--check` 同用。
+
 下载必须是 HTTP 200，大小和 SHA-256 同时匹配；网络失败、超时、403、404、截断、过大响应和错误哈希都会停止构建。临时文件通过校验后才原子替换，不拿半个文件覆盖已有副本。拒绝重定向、目录穿越与符号链接，错误信息不打印签名 URL 或 SDK 请求详情。
 
 ## 授权输入
@@ -27,6 +29,10 @@ npm run dev
 
 - `COS_CREDENTIALS_JSON`：包含 `SecretId`、`SecretKey` 和可选 `SecurityToken` 的 JSON。
 - 或 `COS_SECRET_ID`、`COS_SECRET_KEY`、可选 `COS_SESSION_TOKEN`。
+
+macOS 本地开发另支持系统钥匙串自动读取：service 为 `cool.cnb.framework-station.my-station.cos`，account 为 `my-station-assets`，密码内容为同格式 JSON。当前开发机已经配置此项，日常同步、开发和镜像构建无需创建 `.env` 或重复导出变量。代码仅保存条目名称，不保存密钥值。显式环境输入优先，不会用钥匙串掩盖无效或不完整的 CI 授权。有效缓存和只读校验不会访问钥匙串。
+
+钥匙串只对当前 macOS 用户有效，不会随 Git 同步到其他电脑或 CNB。Linux / CI 继续使用上面的环境或 BuildKit 授权；不能将“本机自动读取”当作“远程构建已经授权”。
 
 优先使用短期、仅允许指定 `site-assets/<revision>/*` 的 GetObject 权限。脚本只发送 GET 请求，不代表所注入账号的权限已经被自动收窄；IAM 权限须由授权系统保证。本次实现不更改 CAM、桶 ACL、DNS 或公开读写权限，也不将聊天中的凭据持久保存。
 

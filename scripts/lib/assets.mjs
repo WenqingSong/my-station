@@ -2,6 +2,8 @@ import { createHash, randomUUID } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { lstat, mkdir, open, readFile, rename, unlink } from 'node:fs/promises';
 import path from 'node:path';
+import { assetCredentialEnvironment, credentialsFromEnvironment } from './asset-credentials.mjs';
+export { credentialsFromEnvironment } from './asset-credentials.mjs';
 
 const fail = message => { throw new Error(message); };
 const isSafePath = value => typeof value === 'string' &&
@@ -63,29 +65,13 @@ async function matches(filePath, entry) {
   }
 }
 
-export function credentialsFromEnvironment(env = process.env) {
-  let value;
-  if (env.COS_CREDENTIALS_JSON) {
-    try { value = JSON.parse(env.COS_CREDENTIALS_JSON); }
-    catch { fail('COS_CREDENTIALS_JSON is not valid JSON'); }
-  } else if (env.COS_SECRET_ID || env.COS_SECRET_KEY) {
-    value = { SecretId: env.COS_SECRET_ID, SecretKey: env.COS_SECRET_KEY, SecurityToken: env.COS_SESSION_TOKEN };
-  }
-  if (!value || typeof value.SecretId !== 'string' || !value.SecretId ||
-      typeof value.SecretKey !== 'string' || !value.SecretKey ||
-      (value.SecurityToken !== undefined && typeof value.SecurityToken !== 'string')) {
-    fail('Assets are missing or corrupt. Supply COS read-only credentials via environment / BuildKit secrets and run npm run assets:sync.');
-  }
-  return { SecretId: value.SecretId, SecretKey: value.SecretKey, SecurityToken: value.SecurityToken };
-}
-
 // Lazy initialization: a verified local cache never needs credentials or network.
 export function cosDownloader(manifest, { env = process.env, fetchImpl = fetch } = {}) {
   let client;
   const host = `${manifest.bucket}.cos.${manifest.region}.myqcloud.com`;
   return async (file, signal) => {
     if (!client) {
-      const credentials = credentialsFromEnvironment(env);
+      const credentials = credentialsFromEnvironment(assetCredentialEnvironment(env));
       const { default: COS } = await import('cos-nodejs-sdk-v5');
       client = new COS({ ...credentials, Protocol: 'https:' });
     }
@@ -105,12 +91,13 @@ export function cosDownloader(manifest, { env = process.env, fetchImpl = fetch }
   };
 }
 
-export async function syncAssets({ manifest, root, download, checkOnly = false, log = () => {}, timeoutMs = 60000 }) {
+export async function syncAssets({ manifest, root, download, checkOnly = false, refresh = false, log = () => {}, timeoutMs = 60000 }) {
   validateManifest(manifest);
+  if (checkOnly && refresh) fail('Asset download refresh cannot be combined with check-only mode');
   const result = { cached: 0, downloaded: 0, totalBytes: 0 };
   for (const file of manifest.files) {
     const destination = await assetPath(root, file.path);
-    if (await matches(destination, file)) {
+    if (!refresh && await matches(destination, file)) {
       result.cached++;
       result.totalBytes += file.bytes;
       log(`Verified local asset: ${file.path}`);

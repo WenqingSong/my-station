@@ -8,6 +8,7 @@
   },
   "scripts": {
     "assets:sync": "node scripts/sync-assets.mjs",
+    "assets:pull": "node scripts/sync-assets.mjs --refresh",
     "assets:verify": "node scripts/sync-assets.mjs --check",
     "predev": "npm run assets:sync",
     "dev": "vite",

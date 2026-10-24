@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { loadManifest, validateManifest, credentialsFromEnvironment, cosDownloader, syncAssets } from '../scripts/lib/assets.mjs';
 import { buildArguments } from '../scripts/docker-build.mjs';
+import { assetCredentialEnvironment } from '../scripts/lib/asset-credentials.mjs';
 
 const payload = Buffer.from('verified media bytes');
 const entry = { path: 'media/test.mp4', bytes: payload.length, sha256: createHash('sha256').update(payload).digest('hex') };
@@ -182,4 +183,64 @@ test('Docker receives secret variable names, never secret values or build args',
   assert.equal(args.filter(arg => arg === '--secret').length, 4);
   assert.doesNotMatch(args.join(' '), /private-|--build-arg/);
   assert.deepEqual(buildArguments([], {}), ['build', '.']);
+});
+
+test('refresh performs a real download even when the local file is valid', async t => {
+  const root = await fixture(t);
+  await cached(root);
+  let calls = 0;
+  const result = await syncAssets({ manifest, root, refresh: true, download: async () => { calls++; return response(); } });
+  assert.equal(calls, 1);
+  assert.deepEqual(result, { cached: 0, downloaded: 1, totalBytes: payload.length });
+  assert.deepEqual(await readFile(path.join(root, entry.path)), payload);
+});
+
+test('a failed forced refresh preserves an already valid local asset', async t => {
+  const root = await fixture(t);
+  await cached(root);
+  await assert.rejects(syncAssets({ manifest, root, refresh: true, download: async () => new Response('denied', { status: 403 }) }), /HTTP 403/);
+  assert.deepEqual(await readFile(path.join(root, entry.path)), payload);
+  await assert.rejects(syncAssets({ manifest, root, checkOnly: true, refresh: true }), /cannot be combined/);
+});
+
+test('macOS keychain provides credentials without mutating the caller environment', () => {
+  const env = { PATH: '/test' };
+  const raw = JSON.stringify({ SecretId: 'test-id', SecretKey: 'test-key', SecurityToken: 'temporary-token' });
+  const resolved = assetCredentialEnvironment(env, { platform: 'darwin', lookup: () => raw });
+  assert.equal(resolved.COS_CREDENTIALS_JSON, raw);
+  assert.deepEqual(env, { PATH: '/test' });
+  assert.doesNotMatch(buildArguments([], resolved).join(' '), /test-id|test-key|temporary-token/);
+});
+
+test('explicit authorization is not replaced by local keychain fallback', () => {
+  for (const env of [
+    { COS_CREDENTIALS_JSON: 'invalid-json' },
+    { COS_SECRET_ID: 'explicit-only-id' },
+    { COS_SECRET_KEY: 'explicit-only-key' },
+    { COS_SESSION_TOKEN: 'explicit-only-token' },
+  ]) {
+    const actual = assetCredentialEnvironment(env, { platform: 'darwin', lookup: () => { throw new Error('must not read keychain'); } });
+    assert.strictEqual(actual, env);
+    assert.throws(() => credentialsFromEnvironment(actual));
+  }
+});
+
+test('Linux and a missing keychain entry preserve cache-only operation', () => {
+  const env = {};
+  assert.strictEqual(assetCredentialEnvironment(env, { platform: 'linux', lookup: () => { throw new Error('must not read keychain'); } }), env);
+  assert.strictEqual(assetCredentialEnvironment(env, { platform: 'darwin', lookup: () => undefined }), env);
+});
+
+test('keychain errors never expose raw output or malformed credentials', () => {
+  for (const lookup of [
+    () => { throw new Error('private credential output'); },
+    () => 'private invalid-json',
+    () => JSON.stringify({ SecretId: 'private-id' }),
+  ]) {
+    assert.throws(() => assetCredentialEnvironment({}, { platform: 'darwin', lookup }), error => {
+      assert.match(error.message, /^COS keychain /);
+      assert.doesNotMatch(error.message, /private/);
+      return true;
+    });
+  }
 });

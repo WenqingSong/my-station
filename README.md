@@ -24,6 +24,8 @@ npm run preview
 
 视频（保留音轨）、封面和 8 张响应式职业照由 `assets/manifest.json` 锁定 COS 版本、对象路径、字节数与 SHA-256。`npm run dev` 和 `npm run build` 会先检查本地副本，仅下载缺失或损坏的文件；有效缓存不需要网络或凭据。构建后再检查 `dist/` 中全部 10 个素材，避免漏打包。
 
+需要主动重拉全部素材时执行 `npm run assets:pull`。当前 macOS 开发机已将授权保存在系统钥匙串，脚本和 Docker 构建包装器自动读取，无需 `.env`；仓库不包含密钥。其他开发机及 Linux / CI 仍需配置授权，详见素材文档。
+
 现有 Git 素材副本暂作迁移兼容保留：在确认 CNB 远程构建也能获取只读授权并完成冷构建前，不提前取消追踪，以免破坏已有自动发布。COS 同步已经可用于空素材目录，并不依赖这些副本才能工作。
 
 验收命令：`npm run build && node --test qa/*.test.mjs`。应测试 `npm run preview` 的根地址 `/`，而非仅检查旧试映路径。
@@ -40,7 +42,8 @@ npm run preview
 - `public/`：职业照、本地字体、原片与影片封面。
 - `assets/manifest.json`：固定版本素材清单，无密钥、无签名链接。
 - `scripts/sync-assets.mjs`：增量同步与完整性校验；只下载，不上传或修改云端权限。
-- `scripts/docker-build.mjs`：将现有环境授权以 BuildKit secret 传给构建阶段。
+- `scripts/lib/asset-credentials.mjs`：显式环境授权优先，macOS 可自动读取项目专用钥匙串条目。
+- `scripts/docker-build.mjs`：将现有环境或钥匙串授权以 BuildKit secret 传给构建阶段。
 
 网站支持手机布局、键盘导航、动效暂停与 `prefers-reduced-motion`。邮箱及电话链接会调用访客设备的邮件或电话应用，不会由网站自动发送消息。
 
