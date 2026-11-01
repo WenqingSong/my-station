@@ -13,6 +13,9 @@ export function useFilmPortal(
   const requestRef = useRef<(destination: PortalDestination) => void>(() => {});
   const onEnteredRef = useRef(onEntered);
   onEnteredRef.current = onEntered;
+  const reducedRef = useRef(reduced);
+  reducedRef.current = reduced;
+  const finishTransitionRef = useRef(() => {});
 
   useLayoutEffect(() => {
     const stage = stageRef.current, hero = heroRef.current;
@@ -39,9 +42,9 @@ export function useFilmPortal(
       window.dispatchEvent(new Event('film:scroll-reset'));
     };
 
-    const settle = (destination: PortalDestination, focus = true) => {
+    const settle = (destination: PortalDestination, focus = true, align = true) => {
       timeline?.kill(); timeline = undefined;
-      alignTop();
+      if (align) alignTop();
       gsap.set([stage, hero], { clearProps: 'transform,willChange' });
       gsap.set(stage, { opacity: destination === 'film' ? 1 : 0 });
       gsap.set(hero, { opacity: destination === 'hero' ? 1 : 0 });
@@ -64,18 +67,19 @@ export function useFilmPortal(
       }
       updatePhase(destination);
       guard.land(performance.now());
-      if (destination === 'hero') onEnteredRef.current();
+      if (destination === 'hero' && align) onEnteredRef.current();
     };
 
     const travel = (destination: PortalDestination) => {
       if (modalOpen()) return;
+      if (html.classList.contains('brand-loading')) return;
       const next = nextPortalPhase(phaseRef.current, destination);
       if (next === phaseRef.current) return;
       guard.start(performance.now());
       lock(); alignTop();
       hero.inert = true; stage.inert = true;
       updatePhase(next);
-      if (reduced) { settle(destination); return; }
+      if (reducedRef.current) { settle(destination); return; }
       gsap.set([stage, hero], { willChange: 'transform, opacity' });
       // A complete timed handoff, not scroll-scrub: no half-screen resting state.
       timeline = gsap.timeline({ onComplete: () => settle(destination) });
@@ -162,8 +166,15 @@ export function useFilmPortal(
       if (phaseRef.current === 'entering') settle('hero');
       else if (phaseRef.current === 'returning') settle('film');
     };
-    const restore = () => settle('film', false);
-    if (phaseRef.current === 'hero' || phaseRef.current === 'entering') settle('hero', false);
+    finishTransitionRef.current = resize;
+    const restore = (event: PageTransitionEvent) => {
+      // Back from a project link restores the reading position; a fresh load
+      // still starts at the muted film. Never reopen it just for a mode change.
+      if (event.persisted && phaseRef.current === 'hero') settle('hero', false, false);
+      else if (event.persisted) settle('film', false);
+    };
+    if (phaseRef.current === 'hero') settle('hero', false, false);
+    else if (phaseRef.current === 'entering') settle('hero', false);
     else settle('film', false);
     window.addEventListener('wheel', wheel, { passive: false, capture: true });
     window.addEventListener('touchstart', touchStart, { passive: true });
@@ -189,7 +200,11 @@ export function useFilmPortal(
       window.removeEventListener('keyup', keyUp); window.removeEventListener('blur', blur);
       window.removeEventListener('resize', resize); window.removeEventListener('pageshow', restore);
     };
-  }, [heroRef, stageRef, reduced]);
+  }, [heroRef, stageRef]);
+
+  useLayoutEffect(() => {
+    if (reduced) finishTransitionRef.current();
+  }, [reduced]);
 
   return { phase, enterHero: () => requestRef.current('hero'), returnToFilm: () => requestRef.current('film') };
 }

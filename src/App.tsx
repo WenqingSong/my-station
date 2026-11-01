@@ -9,6 +9,7 @@ import JobsModal from './components/JobsModal';
 import FilmOpening from './components/film/FilmOpening';
 import { useFilmPortal } from './components/film/useFilmPortal';
 import { useCompactMotion, useMotionInfrastructure } from './motion';
+import { prepareBrandEntrance } from './brand-readiness';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -104,6 +105,15 @@ function useReducedMotion() {
 }
 
 function App() {
+  const [brandLoading, setBrandLoading] = useState(() => document.documentElement.classList.contains('brand-loading'));
+  useEffect(() => {
+    const controller = new AbortController();
+    const reveal = () => { controller.abort(); setBrandLoading(false); };
+    window.addEventListener('brand:ready', reveal);
+    if (!document.documentElement.classList.contains('brand-loading')) reveal();
+    else void prepareBrandEntrance(controller.signal);
+    return () => { controller.abort(); window.removeEventListener('brand:ready', reveal); };
+  }, []);
   const reviewStill = new URLSearchParams(location.search).get('hero-review') === 'still';
   const reduced = useReducedMotion();
   const compact = useCompactMotion();
@@ -149,12 +159,13 @@ function App() {
   return (
     <>
       <div className="film-study" data-phase={phase}>
-      <FilmOpening stageRef={filmRef} active={phase !== 'hero'} reduced={reduced || reviewStill} enterHero={enterHero} />
+      <FilmOpening stageRef={filmRef} active={!brandLoading && phase !== 'hero'} reduced={reduced || reviewStill} enterHero={enterHero} />
       <div className="film-hero-context" ref={siteRef} tabIndex={-1} role="region" aria-label="Arthur 个人主页">
       <a className="skip-link" href="#work">跳至项目</a>
       <header className="site-header restored-site-header">
-        <a className="brand" href="#top" aria-label="Arthur，返回首页"><span className="restored-brand-mark" aria-hidden="true" />ARTHUR / 27</a>
+        <a className="brand" href="#top" aria-label="Framework / Arthur，返回首页"><span className="framework-mark" aria-hidden="true" />ARTHUR / 27</a>
         <nav aria-label="主导航">{[['top', 'Index'], ['work', 'Work'], ['about', 'About'], ['contact', 'Contact']].map(([id, label]) => <a href={`#${id}`} key={id}>{label}</a>)}
+          <a className="mobile-framework" href="#top" aria-label="Framework / Arthur，返回首页"><span className="framework-mark" aria-hidden="true" /></a>
           <button className="film-return" type="button" onClick={returnToFilm} aria-label="返回全屏影片">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6" /></svg>
           </button>
@@ -195,7 +206,7 @@ function App() {
             </h2>
             <div className="contact-rule"><span className="contact-rule-line" aria-hidden="true" /><a className="round-button blue" data-magnetic data-cursor="action" href="mailto:1784870640@qq.com">Get in touch <span aria-hidden="true">↗</span></a></div>
             <div className="contact-options" data-reveal="content"><a className="text-link" href="mailto:1784870640@qq.com">1784870640@qq.com <span aria-hidden="true">↗</span></a><div><a className="text-link" href="tel:+8618256109164"><span className="contact-option-label">PHONE</span><span>+86 182 5610 9164</span></a><span><span className="contact-option-label">QQ</span><span>1784870640</span></span></div></div>
-            <div className="contact-signoff"><span className="contact-signoff-word">Arthur<span>.</span></span><span className="contact-signoff-note">聊项目、工作机会，或告诉我网站哪里需要改进。</span></div>
+            <div className="contact-signoff"><span className="contact-signoff-word">Arthur<span>.</span></span><span className="contact-signoff-note"><span className="framework-signature"><span className="framework-mark" aria-hidden="true" />FRAMEWORK</span>聊项目、工作机会，或告诉我网站哪里需要改进。</span></div>
             <footer><span>2026 © Arthur</span><span>China · UTC+8</span><button type="button" onClick={() => setMotionPaused(value => !value)} aria-pressed={disabled} disabled={reduced}>{reduced ? '系统减少动效' : disabled ? '开启动效　▷' : '暂停动效　Ⅱ'}</button><a className="back-top" href="#top">Back to top <span aria-hidden="true">↑</span></a></footer>
           </div>
         </section>

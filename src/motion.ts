@@ -3,6 +3,8 @@ import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { anchorTop, navigationInset, hashTarget, anchorDestination } from './navigation';
+import { useReadingPosition } from './useReadingPosition';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -37,21 +39,8 @@ type MotionInfrastructureOptions = {
   compact: boolean;
 };
 
-// Sticky rectangles describe the currently pinned position, not the anchor's
-// original place in the document. Resolve scenes from their flow siblings.
-function anchorTop(target: HTMLElement) {
-  if (target.matches('.work-scene') && target.parentElement) {
-    let top = scrollY + target.parentElement.getBoundingClientRect().top;
-    for (const sibling of Array.from(target.parentElement.children)) {
-      if (sibling === target) break;
-      top += (sibling as HTMLElement).offsetHeight + parseFloat(getComputedStyle(sibling).marginBottom || '0');
-    }
-    return top;
-  }
-  return scrollY + target.getBoundingClientRect().top;
-}
-
 export function useMotionInfrastructure({ disabled, compact }: MotionInfrastructureOptions) {
+  useReadingPosition(compact, disabled);
   // Persist across viewport/motion-mode changes: only document entry restores
   // the initial anchor, not every recreation of the scrolling infrastructure.
   const initialHashPending = useRef(Boolean(location.hash));
@@ -95,6 +84,11 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       ScrollTrigger.update();
     };
     window.addEventListener('film:scroll-reset', resetFilmScroll);
+    const restoreReading = (event: Event) => {
+      const top = (event as CustomEvent<{ top: number }>).detail.top;
+      lenis?.scrollTo(top, { immediate: true, force: true });
+    };
+    window.addEventListener('site:scroll-restore', restoreReading);
     syncLock();
 
     // Native links stay functional without JS; enhanced navigation respects motion preferences.
@@ -103,14 +97,13 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       const link = (event.target as Element).closest<HTMLAnchorElement>('a[href^="#"]');
       const hash = link?.getAttribute('href');
       if (!hash || hash === '#') return;
-      const target = document.getElementById(hash.slice(1));
+      const target = hashTarget(hash);
       if (!target) return;
       event.preventDefault();
-      if (location.hash !== hash) history.pushState(null, '', hash);
+      if (location.hash !== hash) history.pushState(history.state, '', hash);
       target.setAttribute('tabindex', '-1');
       target.focus({ preventScroll: true });
-      const offset = hash === '#top' ? 0 : -76;
-      const top = Math.max(0, anchorTop(target) + offset);
+      const top = anchorDestination(target);
       if (lenis) lenis.scrollTo(top, { duration: hash === '#top' ? 1.65 : 1.2, easing: t => 1 - Math.pow(1 - t, 4) });
       else window.scrollTo({ top, behavior: disabled ? 'instant' : 'smooth' });
     };
@@ -121,9 +114,10 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       if (!scene || control === scene || compact || disabled) return;
       const rect = control.getBoundingClientRect();
       const hit = document.elementFromPoint(rect.left + rect.width / 2, Math.min(innerHeight - 1, Math.max(0, rect.top + rect.height / 2)));
-      if (rect.top >= 76 && rect.bottom <= innerHeight && hit && scene.contains(hit)) return;
+      const inset = navigationInset();
+      if (rect.top >= inset && rect.bottom <= innerHeight && hit && scene.contains(hit)) return;
       const inside = rect.bottom - scene.getBoundingClientRect().top;
-      const top = Math.max(0, anchorTop(scene) + Math.max(-76, inside - innerHeight + 32));
+      const top = Math.max(0, anchorTop(scene) + Math.max(-inset, inside - innerHeight + 32));
       if (lenis) lenis.scrollTo(top, { immediate: true });
       else window.scrollTo({ top, behavior: 'instant' });
     };
@@ -131,10 +125,9 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
     let alive = true;
     const restoreHash = () => {
       if (!alive || document.documentElement.classList.contains('intro-locked')) return false;
-      const target = document.getElementById(location.hash.slice(1) || 'top');
+      const target = hashTarget(location.hash);
       if (!target) return false;
-      const offset = target.id === 'top' ? 0 : -76;
-      const top = Math.max(0, anchorTop(target) + offset);
+      const top = anchorDestination(target);
       if (lenis) lenis.scrollTo(top, { immediate: true });
       else window.scrollTo({ top, behavior: 'instant' });
       return true;
@@ -163,6 +156,7 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
       document.removeEventListener('visibilitychange', syncLock);
       window.removeEventListener('film:lock', syncLock);
       window.removeEventListener('film:scroll-reset', resetFilmScroll);
+      window.removeEventListener('site:scroll-restore', restoreReading);
       unsubscribe?.();
       gsap.ticker.remove(update);
       lenis?.destroy();

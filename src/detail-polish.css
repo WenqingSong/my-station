@@ -1,0 +1,75 @@
+/* Interaction finish only. Sticky scenes and scroll timelines remain in their
+   original components; these rules must not turn the site into a static page. */
+:root { --control-ease: cubic-bezier(.22,1,.36,1); }
+html { scroll-padding-top: 88px; }
+body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+main :is(section, article)[tabindex="-1"]:focus { outline: none; }
+
+/* Preloaded local fonts use optional display: on a slow connection the first
+   readable fallback remains stable instead of swapping halfway through a scene. */
+.first-kicker, .first-window-label, .scene-topline, .scene-number,
+.first-project-number, .contact-options, .contact footer {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.scene-editorial p, .work-evidence p, .work-context p, .about-narrative p,
+.about-offclock-intro p, .contact-signoff-note { line-break: strict; text-wrap: pretty; }
+.scene-subtitle, .scene-editorial h4 { text-wrap: balance; }
+.keep-phrase { white-space: nowrap; }
+.scene-bottomline p, .capability-list small { overflow-wrap: anywhere; }
+.contact-options > *, .scene-art-caption > *, .about-certification > div { min-width: 0; }
+.contact-options > a { max-width: 100%; overflow-wrap: anywhere; }
+.contact-options > div > a > span:last-child,
+.contact-options > div > span > span:last-child { white-space: nowrap; letter-spacing: 0; }
+.scene-art-caption button { flex-shrink: 0; white-space: nowrap; }
+
+/* The same target stays in place for hover, focus and press. Never shrink an
+   entire full-screen entry button or shift a project scene on activation. */
+.restored-site-header nav a {
+  min-height: 44px;
+  transition: color .22s var(--control-ease), background-color .22s var(--control-ease);
+}
+.film-return { width: 44px; height: 44px; flex-basis: 44px; }
+.restored-site-header nav a:focus-visible {
+  outline: 2px solid #b8ff39; outline-offset: -3px; border-radius: 99px;
+}
+.restored-site-header nav a:active { background: #d2d3ce; color: #101010; }
+.film-enter:active { scale: 1; }
+.first-motion-toggle { min-height: 44px; }
+.contact-options > div > a { min-height: 44px; align-items: center; }
+.contact :is(a,button):focus-visible, .scene-matching :is(a,button):focus-visible {
+  outline-color: #aeb7ff;
+}
+.work-repository:focus-visible, .work-evidence-links a:focus-visible,
+.scene-bottomline > a:focus-visible { border-radius: 3px; outline-offset: 4px; }
+.first-contact-link:active, .work-repository:active,
+.work-evidence-links a:active, .scene-bottomline > a:active,
+.contact-options a:active { opacity: .7; }
+.first-motion-toggle:disabled, .contact footer button:disabled { opacity: .65; }
+.text-link { text-decoration-skip-ink: auto; }
+.text-link::after { bottom: 0; }
+
+/* Reserve the final crop before loading; decode the selected responsive source
+   before showing it. No blur, opacity filter or transform on portrait pixels. */
+.about-portrait { position: relative; }
+.about-portrait:not([data-image-state="ready"]) .portrait-window img { visibility: hidden; }
+.portrait-load-status {
+  position: absolute; top: 45%; left: 12px; right: 12px;
+  text-align: center; color: #d8dfe4; font-size: 13px; line-height: 1.6;
+}
+
+@media (max-width: 620px) {
+  html { scroll-padding-top: 76px; }
+  .film-study .restored-site-header nav a { padding-inline: clamp(7px,2.5vw,15px); }
+  .contact-options > div > a, .contact-options > div > span { gap: 14px; }
+  .scene-topline { align-items: baseline; letter-spacing: .06em; }
+  .scene-topline > span:last-child { text-align: right; }
+  .first-kicker { letter-spacing: .04em; }
+}
+@media (hover: none) {
+  .restored-site-header nav a:hover:not([aria-current]) { background: transparent; color: inherit; }
+  .scene-art-caption button:hover { background: transparent; }
+  .text-link::after { transform: scaleX(1); opacity: .4; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .restored-site-header nav a { transition: none; }
+}

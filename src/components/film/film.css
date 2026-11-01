@@ -5,6 +5,7 @@ html.film-portal-locked,html.film-portal-locked body{overflow:hidden;overscroll-
 .film-stage{position:fixed;z-index:50;inset:0;width:100%;height:100vh;height:100dvh;background:#171813;overflow:hidden;isolation:isolate;transform-origin:50% 50%;touch-action:none}
 .film-video,.film-poster{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:cover;object-position:var(--film-x) var(--film-y);display:block;pointer-events:none}
 .film-video{opacity:0}.film-stage.is-ready .film-video{opacity:1}
+@media(prefers-reduced-motion:no-preference){.film-stage[data-intro-ready=true] .film-video{opacity:1}}
 .film-enter{position:absolute;inset:0;z-index:1;display:block;width:100%;height:100%;padding:0;border:0;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .film-entry-glass,.film-controls,.film-return{border:1px solid #ffffff55;background:linear-gradient(145deg,#ffffff24,#ffffff05 42%,#ffffff12),#16161628;box-shadow:inset 0 1px 1px #ffffff60,inset 0 -1px 1px #ffffff12,0 8px 30px #00000018;-webkit-backdrop-filter:blur(16px) saturate(1.25);backdrop-filter:blur(16px) saturate(1.25);color:#fff}
 .film-entry-glass{position:absolute;bottom:max(30px,env(safe-area-inset-bottom));left:50%;width:62px;height:62px;border-radius:50%;display:grid;place-items:center;opacity:0;transform:translate(-50%,8px) scale(.94);transition:opacity .28s var(--glass-ease),transform .42s var(--glass-ease),background .2s;pointer-events:none}
@@ -15,6 +16,8 @@ html.film-portal-locked,html.film-portal-locked body{overflow:hidden;overscroll-
 .film-control svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 1px 3px #0008)}
 .film-stage[data-pointer-inside=true] .film-entry-glass,.film-stage:has(:focus-visible) .film-entry-glass{opacity:1;transform:translate(-50%,0) scale(1)}
 .film-stage[data-pointer-inside=true] .film-controls,.film-stage:has(:focus-visible) .film-controls{opacity:1;transform:none;pointer-events:auto}
+.film-stage[data-intro-ready=true] .film-controls{opacity:1;transform:none;pointer-events:auto}
+.film-stage[data-intro-ready=true] .film-entry-glass{opacity:1;transform:translate(-50%,0) scale(1)}
 @media(hover:hover){.film-control:hover{background:#ffffff20}.film-enter:hover .film-entry-glass{background-color:#16161638}.film-return:hover{background:#10101020}}
 .film-control:active{background:#ffffff30;transform:scale(.92)}
 .film-enter:active .film-entry-glass{transform:translate(-50%,2px) scale(.93)}

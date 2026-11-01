@@ -33,7 +33,7 @@ export default function SiteDetails({ disabled, compact }: { disabled: boolean; 
       if (progress > .995) current = chapters[chapters.length - 1];
       setChapter(previous => previous === current ? previous : current);
       document.querySelectorAll('.site-header nav a').forEach(link => {
-        const active = link.getAttribute('href') === `#${current[0]}`;
+        const active = link.getAttribute('href') === `#${current[0] === 'skills' ? 'work' : current[0]}`;
         if (active) link.setAttribute('aria-current', 'location');
         else link.removeAttribute('aria-current');
       });
@@ -80,7 +80,7 @@ export default function SiteDetails({ disabled, compact }: { disabled: boolean; 
       if (cursor) cursor.style.transform = `translate3d(${point.x}px, ${point.y}px, 0)`;
     };
     const move = (event: PointerEvent) => {
-      if (event.pointerType !== 'mouse' || document.documentElement.classList.contains('intro-locked')) return;
+      if (event.pointerType !== 'mouse' || document.documentElement.classList.contains('intro-locked')) { hide(); return; }
       const target = event.target as Element;
       const nextMagnet = target.closest<HTMLElement>('[data-magnetic]');
       const nextTitle = target.closest<HTMLElement>('.scene-title-follow');
@@ -95,7 +95,9 @@ export default function SiteDetails({ disabled, compact }: { disabled: boolean; 
     document.addEventListener('pointerleave', hide);
     addEventListener('blur', hide);
     addEventListener('scroll', hide, { passive: true });
-    return () => { hide(); document.removeEventListener('pointermove', move); document.removeEventListener('pointerleave', hide); removeEventListener('blur', hide); removeEventListener('scroll', hide); };
+    addEventListener('resize', hide);
+    addEventListener('film:lock', hide);
+    return () => { hide(); document.removeEventListener('pointermove', move); document.removeEventListener('pointerleave', hide); removeEventListener('blur', hide); removeEventListener('scroll', hide); removeEventListener('resize', hide); removeEventListener('film:lock', hide); };
   }, [compact, disabled]);
 
   useLayoutEffect(() => {

@@ -36,13 +36,14 @@ test('original soundtrack is retained and every fresh visit starts muted', () =>
 });
 
 test('hidden film pauses, reduced motion does not autoplay, failed media does not block entry', () => {
-  assert.match(entry, /!active \|\| document.hidden/);
+  assert.match(entry, /!canPlay \|\| document.hidden/);
+  assert.match(entry, /active \|\| stageRef.current\?\.dataset.filmStarting === 'true'/);
   assert.match(entry, /reduced && !explicitlyPlaying.current/);
   assert.match(entry, /explicitlyPlaying.current = true/);
   assert.match(entry, /onError=.*setFailed\(true\)/);
   assert.match(entry, /onClick=\{enterHero\}/);
   assert.doesNotMatch(entry, /autoPlay=/);
-  assert.match(hook, /if \(reduced\) \{ settle\(destination\); return; \}/);
+  assert.match(hook, /if \(reducedRef.current\) \{ settle\(destination\); return; \}/);
 });
 
 test('Lenis observes synchronous locking and ignores captured portal gestures', () => {
