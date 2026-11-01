@@ -83,7 +83,7 @@ export async function prepareFilmHandoff(video: HTMLVideoElement, signal: AbortS
 }
 
 declare global {
-  interface Window { FrameworkIntro?: { finish(beforeReveal?: () => Promise<void>): Promise<void>; fail(message?: string): void }; }
+  interface Window { FrameworkIntro?: { finish(beforeReveal?: () => Promise<void>): Promise<void>; fail(message?: string): void; attachSite(): void }; }
 }
 
 export async function prepareBrandEntrance(signal: AbortSignal) {

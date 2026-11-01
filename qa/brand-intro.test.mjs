@@ -6,7 +6,7 @@ import vm from 'node:vm';
 const script = readFileSync(new URL('../public/brand/intro.js', import.meta.url), 'utf8');
 function harness({ animated = true, reduced = true, time = 5400 } = {}) {
   const timers = new Map();
-  const button = new EventTarget(); button.hidden = true;
+  const button = new EventTarget(); button.hidden = true; button.textContent = '先进入网站';
   const status = { textContent: '' };
   const root = { inert: true, removeAttribute() { this.inert = false; } };
   const overlay = { dataset: {}, removed: false, querySelector: tag => tag === 'button' ? button : {}, remove() { this.removed = true; } };
@@ -19,7 +19,7 @@ function harness({ animated = true, reduced = true, time = 5400 } = {}) {
     matchMedia: () => ({ matches: reduced, addEventListener() {}, removeEventListener() {} }),
     setTimeout: (fn, ms) => { timers.set(ms, fn); return ms; }, clearTimeout: id => timers.delete(id),
     CustomEvent: class { constructor(type, options = {}) { this.type = type; this.detail = options.detail; } },
-    dispatchEvent: event => events.push(event),
+    dispatchEvent: event => { events.push(event); context.onEvent?.(event); },
   });
   vm.runInContext(script, context);
   return { context, overlay, root, button, status, timers, events, removedClasses,
@@ -75,15 +75,59 @@ test('animation withdrawal waits for actual film preparation', async () => {
   h.release(); await pending;
 });
 
-test('a slow network offers retry without automatically exposing unready video', () => {
+test('the slow-network action appears only after the application can accept it', () => {
   const h = harness();
-  h.timers.get(6000)();
+  h.timers.get(8000)();
   assert.equal(h.button.hidden, true);
-  h.timers.get(15000)();
+  h.context.FrameworkIntro.attachSite();
   assert.equal(h.button.hidden, false);
-  assert.equal(h.button.textContent, '重新加载');
+  assert.equal(h.button.textContent, '先进入网站');
   assert.equal(h.overlay.removed, false);
   assert.equal(h.counts().finishCount, 0);
+});
+
+test('the slow-network action does not interrupt a normal fast entrance', async () => {
+  const h = harness(); h.context.FrameworkIntro.attachSite();
+  assert.equal(h.button.hidden, true);
+  const pending = h.context.FrameworkIntro.finish();
+  await new Promise(setImmediate); h.release(); await pending;
+  assert.equal(h.events[0].type, 'brand:ready');
+});
+
+test('manual continuation skips an unresolved media wait, exits once and targets the homepage', async () => {
+  const h = harness(); h.context.FrameworkIntro.attachSite(); h.timers.get(8000)();
+  h.button.dispatchEvent(new Event('click')); h.button.dispatchEvent(new Event('click'));
+  await new Promise(setImmediate);
+  assert.equal(h.events.filter(e => e.type === 'brand:continue').length, 1);
+  assert.equal(h.counts().finishCount, 1);
+  assert.equal(h.overlay.removed, false);
+  assert.equal(h.button.disabled, true);
+  h.release(); await h.context.FrameworkIntro.finish();
+  assert.equal(h.overlay.removed, true);
+  assert.equal(h.events[1].type, 'brand:ready');
+});
+
+test('manual continuation can interrupt an already pending video-frame handoff', async () => {
+  const h = harness(); h.context.FrameworkIntro.attachSite();
+  let rejectFrame;
+  const pending = h.context.FrameworkIntro.finish(() => new Promise((resolve, reject) => { rejectFrame = reject; }));
+  await new Promise(setImmediate);
+  h.context.onEvent = event => { if (event.type === 'brand:continue') rejectFrame(new Error('cancelled playback')); };
+  h.button.dispatchEvent(new Event('click'));
+  await new Promise(setImmediate);
+  assert.equal(h.counts().finishCount, 1);
+  h.release(); await pending;
+  assert.equal(h.overlay.removed, true);
+  assert.equal(h.events.filter(e => e.type === 'brand:ready').length, 1);
+});
+
+test('a failed handoff can still be bypassed, without reloading or reviving the wait', async () => {
+  const h = harness(); h.context.FrameworkIntro.attachSite();
+  await assert.rejects(h.context.FrameworkIntro.finish(async () => { throw new Error('blocked'); }));
+  h.context.FrameworkIntro.fail(); assert.equal(h.button.hidden, false);
+  h.button.dispatchEvent(new Event('click'));
+  await new Promise(setImmediate); h.release(); await h.context.FrameworkIntro.finish();
+  assert.equal(h.overlay.removed, true);
 });
 
 test('a failed playback preparation leaves the brand cover in place', async () => {

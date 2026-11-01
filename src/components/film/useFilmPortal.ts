@@ -167,6 +167,10 @@ export function useFilmPortal(
       else if (phaseRef.current === 'returning') settle('film');
     };
     finishTransitionRef.current = resize;
+    // Render the homepage underneath the opaque brand layer, so the Gaussian
+    // exit reveals usable content directly instead of an unready film.
+    const continueFromBrand = () => settle('hero', false);
+    window.addEventListener('brand:continue', continueFromBrand);
     const restore = (event: PageTransitionEvent) => {
       // Back from a project link restores the reading position; a fresh load
       // still starts at the muted film. Never reopen it just for a mode change.
@@ -199,6 +203,7 @@ export function useFilmPortal(
       window.removeEventListener('touchend', touchEnd); window.removeEventListener('touchcancel', touchEnd);
       window.removeEventListener('keyup', keyUp); window.removeEventListener('blur', blur);
       window.removeEventListener('resize', resize); window.removeEventListener('pageshow', restore);
+      window.removeEventListener('brand:continue', continueFromBrand);
     };
   }, [heroRef, stageRef]);
 

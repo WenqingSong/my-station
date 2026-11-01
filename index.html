@@ -13,13 +13,17 @@
       .brand-intro svg{display:block;width:clamp(112px,14vw,176px);height:auto;aspect-ratio:1}
       .brand-intro-name{font-size:12px;letter-spacing:.26em;padding-left:.26em}
       .brand-intro-status{position:absolute;bottom:max(38px,env(safe-area-inset-bottom));left:24px;right:24px;display:flex;flex-direction:column;align-items:center;gap:12px;font-size:12px;color:#696a67;line-height:1.5;text-align:center}
-      .brand-intro-skip{font:inherit;color:inherit;border:0;border-bottom:1px solid currentColor;padding:8px 2px;background:transparent;cursor:pointer}
+      .brand-intro-skip{display:inline-flex;align-items:center;justify-content:center;gap:24px;min-height:46px;padding:11px 20px;border:1px solid #14171c35;border-radius:999px;background:transparent;color:#14171c;font:inherit;cursor:pointer;transition:background .2s,border-color .2s;animation:brand-action-enter .32s ease both}
+      .brand-intro-skip:hover{background:#14171c08;border-color:#14171c70}
+      .brand-intro-skip:disabled{cursor:default;opacity:.65}
       .brand-intro-skip[hidden]{display:none}
       .brand-intro-skip:focus-visible{outline:2px solid currentColor;outline-offset:5px}
-      @media(prefers-color-scheme:dark){.brand-intro{background:#14171c;color:#fafbfc}.brand-intro-status{color:#a6a9ae}}
+      @keyframes brand-action-enter{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+      @media(prefers-color-scheme:dark){.brand-intro{background:#14171c;color:#fafbfc}.brand-intro-status{color:#a6a9ae}.brand-intro-skip{color:#fafbfc;border-color:#ffffff38}.brand-intro-skip:hover{background:#ffffff0c;border-color:#ffffff70}}
+      @media(prefers-reduced-motion:reduce){.brand-intro-skip{animation:none;transition:none}}
     </style>
     <script src="/brand/motion-v13.js" defer></script>
-    <script src="/brand/intro.js" defer></script>
+    <script src="/brand/intro.js?v=slow-exit-1" defer></script>
     <link rel="preload" href="/media/think-different-poster.jpg" as="image" fetchpriority="high" />
     <link rel="preload" href="/fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin />
@@ -35,7 +39,7 @@
       <clipPath id="intro-mark-spine"><path d="M0 0H256V295.8908L0 148.0892Z"/></clipPath>
       <clipPath id="intro-mark-right"><path d="M0 0H256V123.84L0 271.64Z"/></clipPath>
     </defs><g transform="translate(6 0)" fill="none" stroke="currentColor" stroke-width="10.5" stroke-linecap="round" stroke-linejoin="round"><path d="M128 28 44 76.4974V173.4923L112.5622 213.077" clip-path="url(#intro-mark-left)"/><path d="M128 28 44 76.4974 128 124.9948V229" clip-path="url(#intro-mark-spine)"/><path d="M128 28 212 76.4974V157" clip-path="url(#intro-mark-right)"/></g></svg><span class="brand-intro-name">FRAMEWORK</span></div>
-      <div class="brand-intro-status"><span id="brand-intro-status">正在准备画面</span><button class="brand-intro-skip" type="button" hidden>重新加载 <span aria-hidden="true">↗</span></button></div>
+      <div class="brand-intro-status"><span id="brand-intro-status">正在准备画面</span><button class="brand-intro-skip" type="button" hidden>先进入网站 <span aria-hidden="true">↗</span></button></div>
     </div>
     <noscript><style>.brand-intro{display:none}html.brand-loading,html.brand-loading body{overflow:auto}</style>请启用 JavaScript 以浏览个人网站。</noscript>
     <div id="root" inert></div>

@@ -106,14 +106,6 @@ function useReducedMotion() {
 
 function App() {
   const [brandLoading, setBrandLoading] = useState(() => document.documentElement.classList.contains('brand-loading'));
-  useEffect(() => {
-    const controller = new AbortController();
-    const reveal = () => { controller.abort(); setBrandLoading(false); };
-    window.addEventListener('brand:ready', reveal);
-    if (!document.documentElement.classList.contains('brand-loading')) reveal();
-    else void prepareBrandEntrance(controller.signal);
-    return () => { controller.abort(); window.removeEventListener('brand:ready', reveal); };
-  }, []);
   const reviewStill = new URLSearchParams(location.search).get('hero-review') === 'still';
   const reduced = useReducedMotion();
   const compact = useCompactMotion();
@@ -147,6 +139,26 @@ function App() {
   const filmRef = useRef<HTMLElement>(null);
   const siteRef = useRef<HTMLDivElement>(null);
   const { phase, enterHero, returnToFilm } = useFilmPortal(filmRef, siteRef, reduced || reviewStill, handleOpeningComplete);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let continuing = false;
+    const continueToSite = () => { continuing = true; controller.abort(); };
+    const reveal = () => {
+      controller.abort(); setBrandLoading(false);
+      if (continuing) siteRef.current?.focus({ preventScroll: true });
+    };
+    window.addEventListener('brand:continue', continueToSite);
+    window.addEventListener('brand:ready', reveal);
+    window.FrameworkIntro?.attachSite();
+    if (!document.documentElement.classList.contains('brand-loading')) reveal();
+    else void prepareBrandEntrance(controller.signal);
+    return () => {
+      controller.abort();
+      window.removeEventListener('brand:continue', continueToSite);
+      window.removeEventListener('brand:ready', reveal);
+    };
+  }, []);
 
   useMotionInfrastructure({ disabled, compact });
 
