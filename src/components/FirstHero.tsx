@@ -24,6 +24,7 @@ export default function FirstHero({ projects, paused, motionDisabled, reduced, t
     let width = 0, height = 0, frame = 0;
     let onscreen = true, alive = true;
     let pointer = { x: -999, y: -999 };
+    const colorScheme = matchMedia('(prefers-color-scheme: dark)');
     const resize = () => {
       const rect = host.getBoundingClientRect();
       const dpr = Math.min(devicePixelRatio || 1, 2);
@@ -60,7 +61,7 @@ export default function FirstHero({ projects, paused, motionDisabled, reduced, t
         point.y += (ty - point.y) * .12;
         point.radius += (radius - point.radius) * .12;
         if (Math.abs(tx - point.x) + Math.abs(ty - point.y) + Math.abs(radius - point.radius) > .025) moving = true;
-        ctx.fillStyle = 'rgba(16,16,16,' + (.05 + point.quiet * .2) + ')';
+        ctx.fillStyle = (colorScheme.matches ? 'rgba(240,241,237,' : 'rgba(16,16,16,') + (.05 + point.quiet * .2) + ')';
         ctx.beginPath(); ctx.arc(point.x, point.y, point.radius, 0, Math.PI * 2); ctx.fill();
       });
       if (moving && onscreen && !paused && !document.hidden) frame = requestAnimationFrame(draw);
@@ -94,12 +95,15 @@ export default function FirstHero({ projects, paused, motionDisabled, reduced, t
     intersection.observe(host);
     host.addEventListener('pointermove', move); host.addEventListener('pointerleave', leave);
     document.addEventListener('visibilitychange', visibility);
+    const themeChanged = () => { cancelAnimationFrame(frame); draw(); };
+    colorScheme.addEventListener('change', themeChanged);
     document.fonts.ready.then(() => { if (alive) { resize(); leave(); } });
     resize(); draw();
     return () => {
       alive = false; cancelAnimationFrame(frame); resizeObserver.disconnect(); intersection.disconnect(); openingObserver.disconnect();
       host.removeEventListener('pointermove', move); host.removeEventListener('pointerleave', leave);
       document.removeEventListener('visibilitychange', visibility);
+      colorScheme.removeEventListener('change', themeChanged);
     };
   }, [paused]);
 

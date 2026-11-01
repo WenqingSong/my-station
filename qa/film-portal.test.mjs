@@ -59,7 +59,7 @@ test('portal scopes scroll interception, restores state, protects media controls
   }
   assert.match(hook, /top: 0, left: 0, behavior: 'instant'/);
   assert.match(hook, /\.film-controls, \.film-review/);
-  assert.match(hook, /if \(reduced\) \{ settle\(destination\); return; \}/);
+  assert.match(hook, /if \(reducedRef.current\) \{ settle\(destination\); return; \}/);
   assert.match(hook, /history\.scrollRestoration = previousRestoration/);
   assert.match(hook, /if \(transitionKey === event.key\)/);
   assert.match(hook, /if \(touchConsumed \|\| current === 'entering'/);

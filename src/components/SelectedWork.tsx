@@ -49,7 +49,17 @@ function WorkScene({ project, compact, disabled }: { project: Project; compact: 
   const [expanded, setExpanded] = useState(false);
   const visualRef = useRef<HTMLDivElement>(null);
   const pointerFrame = useRef(0);
-  useLayoutEffect(() => () => cancelAnimationFrame(pointerFrame.current), []);
+  useLayoutEffect(() => {
+    const clear = () => {
+      cancelAnimationFrame(pointerFrame.current);
+      visualRef.current?.style.removeProperty('--pointer-x');
+      visualRef.current?.style.removeProperty('--pointer-y');
+    };
+    addEventListener('scroll', clear, { passive: true });
+    addEventListener('resize', clear);
+    addEventListener('blur', clear);
+    return () => { clear(); removeEventListener('scroll', clear); removeEventListener('resize', clear); removeEventListener('blur', clear); };
+  }, []);
   useLayoutEffect(() => {
     if (disabled || compact) {
       cancelAnimationFrame(pointerFrame.current);
@@ -94,7 +104,7 @@ function WorkScene({ project, compact, disabled }: { project: Project; compact: 
         <div><h4><span>01 /</span> 关键决策</h4><p>{evidence.decision}</p></div>
         <div><h4><span>02 /</span> 实现依据</h4><p>{evidence.evidence}</p><div className="work-evidence-links">{evidence.links.map(link => <a href={link.url} key={link.url} target="_blank" rel="noopener noreferrer" aria-label={`${project.title}：${link.label}，新窗口打开`}>{link.label}<span aria-hidden="true">↗</span></a>)}</div></div>
       </div>
-      <div className="scene-bottomline"><div><span>SCOPE / 当前边界</span><p>{evidence.boundary}</p></div><div><span>TECHNOLOGY / 技术方向</span><p>{project.stack}</p></div><a href={project.id === 'matching' ? '#skills' : `#work-${project.id === 'delivery' ? 'backend' : 'matching'}`} aria-label={project.id === 'matching' ? '继续阅读技术能力' : '下一个项目'}>{project.id === 'matching' ? 'The foundation' : 'Next project'} <span aria-hidden="true">↓</span></a></div>
+      <div className="scene-bottomline"><div><span>SCOPE / 当前边界</span><p>{evidence.boundary}</p></div><div><span>TECHNOLOGY / 技术方向</span><p>{project.stack}</p></div><a href={project.id === 'matching' ? '#skills' : `#work-${project.id === 'delivery' ? 'backend' : 'matching'}`} aria-label={project.id === 'matching' ? '继续阅读技术能力' : `下一个项目：${project.id === 'delivery' ? 'Agent Workflow' : 'Offer 捕手'}`}>{project.id === 'matching' ? 'The foundation' : 'Next project'} <span aria-hidden="true">↓</span></a></div>
     </div>
   </article>;
 }

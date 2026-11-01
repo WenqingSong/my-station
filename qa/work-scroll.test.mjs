@@ -66,13 +66,25 @@ test('Introduction is merged without losing its anchor or internship facts', () 
   }
 });
 
-test('Hero, About and Contact markup match the rollback baseline', () => {
-  for (const file of ['src/components/FirstHero.tsx', 'src/components/AboutEditorial.tsx', 'src/components/about-editorial.css']) {
-    assert.equal(source(file), execFileSync('git', ['show', `aa81238:${file}`], { encoding: 'utf8' }));
-  }
+test('Hero and About keep their composition; Contact only adds the brand signature', () => {
+  const hero = source('src/components/FirstHero.tsx');
+  const originalHero = execFileSync('git', ['show', 'aa81238:src/components/FirstHero.tsx'], { encoding: 'utf8' });
+  // Canvas colors now follow system appearance; keep all existing Hero markup.
+  assert.equal(hero.slice(hero.indexOf('  return <section')), originalHero.slice(originalHero.indexOf('  return <section')));
+  assert.equal(source('src/components/about-editorial.css'), execFileSync('git', ['show', 'aa81238:src/components/about-editorial.css'], { encoding: 'utf8' }));
   const originalApp = execFileSync('git', ['show', 'aa81238:src/App.tsx'], { encoding: 'utf8' });
   const contact = text => text.slice(text.indexOf('<section className="contact"'), text.indexOf('</main>'));
-  assert.equal(contact(app), contact(originalApp));
+  const signature = '<span className="framework-signature"><span className="framework-mark" aria-hidden="true" />FRAMEWORK</span>';
+  assert.equal(contact(app).replace(signature, ''), contact(originalApp));
+  const about = source('src/components/AboutEditorial.tsx');
+  const originalAbout = execFileSync('git', ['show', 'aa81238:src/components/AboutEditorial.tsx'], { encoding: 'utf8' });
+  // Loading/decode state may change; preserve the editorial copy and all eight
+  // responsive resources, plus its original scroll-reveal timeline.
+  const narrative = text => text.slice(text.indexOf('      <div className="about-narrative"')).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  assert.equal(narrative(about), narrative(originalAbout));
+  assert.deepEqual(about.match(/\/arthur-editorial-[\d]+\.(webp|jpg)/g), originalAbout.match(/\/arthur-editorial-[\d]+\.(webp|jpg)/g));
+  const timeline = text => text.slice(text.indexOf('    const context = gsap.context'), text.indexOf('  }, [disabled, compact])'));
+  assert.equal(timeline(about), timeline(originalAbout));
 });
 
 test('shared reveal animations are unchanged; initial anchors wait for opening unlock', () => {

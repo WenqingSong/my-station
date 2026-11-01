@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { MOTION } from '../motion';
@@ -6,6 +6,25 @@ import './about-editorial.css';
 
 export default function AboutEditorial({ disabled, compact }: { disabled: boolean; compact: boolean }) {
   const rootRef = useRef<HTMLElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const [imageState, setImageState] = useState<'loading' | 'ready' | 'error'>('loading');
+  useEffect(() => {
+    const image = imageRef.current;
+    if (!image) return;
+    let alive = true;
+    const ready = async () => {
+      try { await image.decode(); } catch { /* A decoded fallback can still be displayed. */ }
+      if (alive) setImageState(image.naturalWidth > 0 ? 'ready' : 'error');
+    };
+    const failed = () => setImageState('error');
+    image.addEventListener('load', ready);
+    image.addEventListener('error', failed);
+    if (image.complete) {
+      if (image.naturalWidth) void ready();
+      else setImageState('error');
+    }
+    return () => { alive = false; image.removeEventListener('load', ready); image.removeEventListener('error', failed); };
+  }, []);
   useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root || disabled) return;
@@ -38,22 +57,23 @@ export default function AboutEditorial({ disabled, compact }: { disabled: boolea
 
       <p className="about-margin-note">Based in<br />Ma’anshan,<br />China.</p>
 
-      <figure className="about-portrait">
+      <figure className="about-portrait" data-image-state={imageState}>
         <picture className="portrait-window">
           <source type="image/webp" srcSet="/arthur-editorial-640.webp 640w, /arthur-editorial-960.webp 960w, /arthur-editorial-1440.webp 1440w, /arthur-editorial-2160.webp 2160w" sizes="(max-width: 620px) 72vw, (max-width: 900px) 42vw, (min-width: 1600px) 440px, 32vw" />
-          <img src="/arthur-editorial-960.jpg"
+          <img ref={imageRef} src="/arthur-editorial-960.jpg"
             srcSet="/arthur-editorial-640.jpg 640w, /arthur-editorial-960.jpg 960w, /arthur-editorial-1440.jpg 1440w, /arthur-editorial-2160.jpg 2160w"
             sizes="(max-width: 620px) 72vw, (max-width: 900px) 42vw, (min-width: 1600px) 440px, 32vw"
             width="960" height="1440" loading="lazy" decoding="async"
             alt="Arthur 身着深色西装，站在深蓝色背景前" />
         </picture>
+        {imageState === 'error' && <span className="portrait-load-status" role="status">照片暂未载入</span>}
         <figcaption><span>Arthur</span><span>宋文清</span></figcaption>
       </figure>
 
       <div className="about-narrative" data-reveal="content">
         <p className="about-small-label">A LITTLE ABOUT ME</p>
         <h3>Hi, I’m Arthur.</h3>
-        <p>中文名宋文清，在马鞍山学院读软件工程，预计 2027 年 7 月毕业。</p>
+        <p>中文名宋文清，在马鞍山学院读软件工程，<span className="keep-phrase">预计 <time dateTime="2027-07">2027 年 7 月</time>毕业。</span></p>
         <p>实习之后，我开始花更多时间读源码、听工程师的访谈，也写工程日记，记录遇到的问题、做过的判断，以及后来发现自己想错的地方。</p>
         <p>项目有 AI Agent 参与实现，我负责方案取舍、推进和验收。哪些实现该保留、哪里还需要测试，我需要自己判断。遇到问题，也要跟进到验证完成。</p>
         <p>我也会留意软件的界面和使用过程。信息怎么组织、操作是否顺手，都值得琢磨。这个网站也会随着我的学习和项目进展继续修改。</p>

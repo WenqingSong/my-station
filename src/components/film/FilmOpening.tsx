@@ -71,13 +71,19 @@ export default function FilmOpening({ stageRef, active, reduced, enterHero }: Pr
     if (!video) return;
     let mounted = true;
     const sync = () => {
-      if (!active || document.hidden || manuallyPaused.current || (reduced && !explicitlyPlaying.current)) video.pause();
+      const canPlay = active || stageRef.current?.dataset.filmStarting === 'true';
+      if (!canPlay || document.hidden || manuallyPaused.current || (reduced && !explicitlyPlaying.current)) video.pause();
       else void video.play().catch(() => { if (mounted) setPaused(true); });
     };
+    if (active && stageRef.current) delete stageRef.current.dataset.filmStarting;
     document.addEventListener('visibilitychange', sync);
     sync();
-    return () => { mounted = false; document.removeEventListener('visibilitychange', sync); video.pause(); };
+    return () => { mounted = false; document.removeEventListener('visibilitychange', sync); };
   }, [reduced, active]);
+  useEffect(() => {
+    const video = videoRef.current;
+    return () => video?.pause();
+  }, []);
 
   const togglePlayback = () => {
     const video = videoRef.current;
@@ -100,14 +106,14 @@ export default function FilmOpening({ stageRef, active, reduced, enterHero }: Pr
     data-pointer-inside={pointerInside} aria-label="个人灵感影片，默认静音循环播放"
     onPointerMove={event => { if (event.pointerType === 'mouse') setPointerInside(true); }}
     onPointerLeave={() => setPointerInside(false)}>
-    <img className="film-poster" src={posterUrl} alt="" aria-hidden="true" fetchPriority="high" />
+    <img className="film-poster" src={posterUrl} alt="" aria-hidden="true" />
     <video ref={videoRef} className="film-video" src={filmUrl} poster={posterUrl}
       muted={muted} playsInline loop preload={reduced ? 'metadata' : 'auto'} aria-hidden="true" tabIndex={-1}
       onSeeked={() => setReady(true)}
       onPlaying={event => { if (event.currentTarget.currentTime >= 1.674) setReady(true); setPaused(false); }}
       onPause={() => setPaused(true)}
       onVolumeChange={event => setMuted(event.currentTarget.muted)}
-      onError={() => { setFailed(true); setPaused(true); setReady(false); }}
+      onError={() => { setFailed(true); setPaused(true); setReady(false); if (stageRef.current) delete stageRef.current.dataset.introReady; }}
       onTimeUpdate={event => {
         // Cover the initial dark leader with a real frame, keeping the original
         // soundtrack and full timeline intact. Subsequent loops stay unedited.

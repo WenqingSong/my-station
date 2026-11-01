@@ -1,18 +1,44 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="brand-loading">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#e9e9e5" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f1efe9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#14171c" media="(prefers-color-scheme: dark)" />
+    <style>
+      html.brand-loading,html.brand-loading body{overflow:hidden}
+      .brand-intro{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:#f1efe9;color:#14171c;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+      .brand-intro-center{display:grid;justify-items:center;gap:22px}
+      .brand-intro svg{display:block;width:clamp(112px,14vw,176px);height:auto;aspect-ratio:1}
+      .brand-intro-name{font-size:12px;letter-spacing:.26em;padding-left:.26em}
+      .brand-intro-status{position:absolute;bottom:max(38px,env(safe-area-inset-bottom));left:24px;right:24px;display:flex;flex-direction:column;align-items:center;gap:12px;font-size:12px;color:#696a67;line-height:1.5;text-align:center}
+      .brand-intro-skip{font:inherit;color:inherit;border:0;border-bottom:1px solid currentColor;padding:8px 2px;background:transparent;cursor:pointer}
+      .brand-intro-skip[hidden]{display:none}
+      .brand-intro-skip:focus-visible{outline:2px solid currentColor;outline-offset:5px}
+      @media(prefers-color-scheme:dark){.brand-intro{background:#14171c;color:#fafbfc}.brand-intro-status{color:#a6a9ae}}
+    </style>
+    <script src="/brand/motion-v13.js" defer></script>
+    <script src="/brand/intro.js" defer></script>
+    <link rel="preload" href="/media/think-different-poster.jpg" as="image" fetchpriority="high" />
     <link rel="preload" href="/fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/noto-sans-sc.woff2" as="font" type="font/woff2" crossorigin />
     <meta name="description" content="我是 Arthur，2027 届软件工程本科生，主要做 Go 后端。这里记录 SurgeCart、Agent Workflow、Offer 捕手，以及实习、学习和代码之外的生活。" />
     <title>Arthur — Go Backend & Cloud Computing</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23242529'/%3E%3Cpath d='M14 48 29 14h7l14 34h-9l-3-8H26l-3 8Zm15-16h7l-3.5-10Z' fill='%23f5f5f1'/%3E%3Ccircle cx='49' cy='15' r='5' fill='%23334bfa'/%3E%3C/svg%3E" />
+    <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="brand-intro" class="brand-intro" role="status" aria-live="polite" aria-label="正在准备 Arthur 的个人网站">
+      <div class="brand-intro-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"  aria-hidden="true"><defs>
+      <clipPath id="intro-mark-left"><path d="M0 0H256V180H106.5V256H0Z"/></clipPath>
+      <clipPath id="intro-mark-spine"><path d="M0 0H256V295.8908L0 148.0892Z"/></clipPath>
+      <clipPath id="intro-mark-right"><path d="M0 0H256V123.84L0 271.64Z"/></clipPath>
+    </defs><g transform="translate(6 0)" fill="none" stroke="currentColor" stroke-width="10.5" stroke-linecap="round" stroke-linejoin="round"><path d="M128 28 44 76.4974V173.4923L112.5622 213.077" clip-path="url(#intro-mark-left)"/><path d="M128 28 44 76.4974 128 124.9948V229" clip-path="url(#intro-mark-spine)"/><path d="M128 28 212 76.4974V157" clip-path="url(#intro-mark-right)"/></g></svg><span class="brand-intro-name">FRAMEWORK</span></div>
+      <div class="brand-intro-status"><span id="brand-intro-status">正在准备画面</span><button class="brand-intro-skip" type="button" hidden>重新加载 <span aria-hidden="true">↗</span></button></div>
+    </div>
+    <noscript><style>.brand-intro{display:none}html.brand-loading,html.brand-loading body{overflow:auto}</style>请启用 JavaScript 以浏览个人网站。</noscript>
+    <div id="root" inert></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
