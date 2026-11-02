@@ -8,6 +8,7 @@ import { captureReadingPoint, restoreReadingPoint, type ReadingPoint } from './r
 export function useReadingPosition(compact: boolean, disabled: boolean) {
   const point = useRef<ReadingPoint | null>(null);
   const restoreRef = useRef(() => {});
+  const previousMode = useRef({ compact, disabled });
   useLayoutEffect(() => {
     let frame = 0, settleFrame = 0, resizing = false;
     let width = innerWidth;
@@ -66,5 +67,12 @@ export function useReadingPosition(compact: boolean, disabled: boolean) {
       removeEventListener('keydown', interrupt);
     };
   }, []);
-  useLayoutEffect(() => { restoreRef.current(); }, [compact, disabled]);
+  useLayoutEffect(() => {
+    const previous = previousMode.current;
+    previousMode.current = { compact, disabled };
+    // Mount has no previous layout to restore. Restoring its captured Hero
+    // position would race the initial project hash when returning from docs.
+    if (previous.compact === compact && previous.disabled === disabled) return;
+    restoreRef.current();
+  }, [compact, disabled]);
 }

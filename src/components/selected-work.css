@@ -68,13 +68,6 @@
 .slip-front{left:20%;top:20%;transform:rotate(-12deg)}.slip-back{left:43%;top:17%;transform:rotate(12deg);background:#aab5ff;color:#1b2c85}.slip-back strong{font-size:4.5cqw}.slip-back>i{height:2px;background:#3047ff50;width:80%}
 .slip-divider{height:1px;background:#a9abb0;margin:8px 0}.slip-bars{width:64%;height:14px;background:repeating-linear-gradient(90deg,#20232a 0 2px,transparent 2px 5px,#20232a 5px 6px,transparent 6px 10px)}
 .is-expanded .slip-front{transform:translate(-13%,8%) rotate(-19deg)}.is-expanded .slip-back{transform:translate(15%,-7%) rotate(22deg)}.is-expanded .orbit-one{transform:rotate(-50deg)}
-.backend-system{perspective:900px;background:linear-gradient(125deg,transparent 45%,#b6c1c755);color:#3e4d55}
-.service-axis{position:absolute;left:50%;top:9%;height:79%;width:1px;background:#75899280;transform:rotate(25deg)}
-.service-plane{position:absolute;left:20%;width:62%;height:37%;border:1px solid #9baab1;transform:rotateX(52deg) rotateZ(-30deg);padding:6%;background:#eaf0f1e8;box-shadow:-10px 18px 24px #53616a20;transition:transform 1s var(--ease-out),top 1s var(--ease-out)}
-.plane-0{top:14%;z-index:3;background:#ef6537;border-color:#f58762;color:#321407}.plane-1{top:34%;z-index:2}.plane-2{top:54%;z-index:1;background:#b6c5cc}
-.service-plane>span{font-size:12px}.service-plane strong{font-size:5.4cqw;font-weight:500;letter-spacing:-.04em;position:relative;z-index:1;display:block;margin-top:8px}
-.plane-grid{position:absolute;inset:0;background:linear-gradient(90deg,#53616a20 1px,transparent 1px),linear-gradient(#53616a20 1px,transparent 1px);background-size:25% 25%}.service-plane>i{position:absolute;right:10%;top:17%;border:1px solid currentColor;width:18%;aspect-ratio:1;border-radius:50%}
-.is-expanded .plane-0{transform:translateY(-15%) rotateX(35deg) rotateZ(-20deg)}.is-expanded .plane-1{transform:rotateX(35deg) rotateZ(-20deg)}.is-expanded .plane-2{transform:translateY(15%) rotateX(35deg) rotateZ(-20deg)}
 .matching-system{color:#d0bef5;background:radial-gradient(ellipse at 50% 45%,#38264e,transparent 65%)}
 .match-orbit{position:absolute;inset:9% 20%;border:1px solid #b8a0e330;border-radius:50%;transform:rotate(42deg)}
 .match-document{position:absolute;top:21%;width:37%;height:57%;border:1px solid #8d7ba060;background:#221b2e;padding:5%;transition:transform 1s var(--ease-out);box-shadow:0 25px 45px #0005}

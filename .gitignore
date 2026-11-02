@@ -16,3 +16,7 @@ film-study/media/
 film-study/captures/
 .secrets/
 *.asset-part
+# Generated authoring previews; deployable reader is tracked under public/projects/.
+content/agent-workflow/index.html
+content/agent-workflow/content.js
+content/agent-workflow/preview.html

@@ -3,6 +3,9 @@
   const overlay = document.getElementById('brand-intro');
   if (!overlay) return;
   const root = document.getElementById('root');
+  if (document.documentElement.dataset?.projectReturn === 'workflow') {
+    overlay.remove(); root?.removeAttribute('inert'); return;
+  }
   const svg = overlay.querySelector('svg');
   const button = overlay.querySelector('button');
   const status = document.getElementById('brand-intro-status');

@@ -58,3 +58,19 @@ npm run preview
 任务八的修正、测试范围与尚未验证的边界见 [QA.md](QA.md)。本地 `qa.html` 仅供开发检查，不进入生产构建。
 
 `/?entry=offer`（由 Gateway 将 `/jobs` 302 而来）与旧 `/jobs` 路径会在用户从影片进入网站后弹出确认，确认后进入同源 `/offer/`；`entry=offer` 参数在弹窗前被一次性消费清除，取消或刷新不会重复弹窗。Offer 应用不在此仓库中；独立部署本作品集时，需要由部署方另外挂载该应用或配置相应转发，不能将静态页面回退当作 Offer 服务可用。
+
+## Agent Workflow 项目与技术文档
+
+Agent Workflow 是首页第一个项目，定制模块位于 `src/components/WorkflowFeature.tsx`，通过 React/SVG 与已有 GSAP 呈现提交和审查绑定。它遵守站点动效开关、系统减少动效和手机布局，图中 C₁/C₂ 为机制示意。
+
+技术文档部署在 **`/projects/agent-workflow/`**，由 `public/projects/agent-workflow/` 提供，无后台或额外运行依赖。九篇 Markdown、固定源码节选与阅读器源文件保存在 `content/agent-workflow/`。更新内容后执行：
+
+```sh
+python3 content/agent-workflow/build_preview.py --site-output public/projects/agent-workflow
+npm run build
+npm test
+```
+
+普通网站构建直接打包已生成的阅读页，CNB 的 Node 镜像不需要额外安装 Python。更新 `snapshot.json` 前应先分析对应提交；构建器拒绝用不同 SHA 的缓存节选填充新版本。
+
+文档页首与页尾的“返回个人网站”链接使用 `/?from=workflow-docs#work-backend`，直接恢复到首页 Agent Workflow 模块，并消费查询参数。只有该精确返回入口跳过品牌与影片；普通新访问仍保留完整品牌加载与影片开场。
