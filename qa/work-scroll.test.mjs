@@ -3,25 +3,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { workSceneMetrics } from '../src/components/work-scene-metrics.ts';
 import { workEvidence } from '../src/components/work-evidence.ts';
 
 const source = file => readFileSync(new URL('../' + file, import.meta.url), 'utf8');
 const work = source('src/components/SelectedWork.tsx');
 const css = source('src/components/selected-work.css');
 const app = source('src/App.tsx');
-
-test('tall scenes expose their entire content before the next scene arrives', () => {
-  for (const viewport of [568, 720, 900, 1080, 1440]) {
-    for (const height of [760, 940, 1200, 1800]) {
-      const metrics = workSceneMetrics(height, viewport);
-      assert.equal(metrics.top, Math.min(0, viewport - height));
-      assert.ok(metrics.hold >= 240);
-      assert.ok(metrics.top + height <= Math.max(height, viewport));
-      if (height > viewport) assert.equal(metrics.top + height, viewport);
-    }
-  }
-});
 
 test('every project has a problem, a decision, bounded claims and pinned evidence', () => {
   assert.deepEqual(Object.keys(workEvidence), ['delivery', 'backend', 'matching']);
@@ -36,25 +23,23 @@ test('every project has a problem, a decision, bounded claims and pinned evidenc
   assert.match(workEvidence.delivery.decision, /MySQL 请求表/);
 });
 
-test('work preserves sticky scenes, mask reveal, scrubbed crop, parallax and handoff', () => {
-  assert.match(css, /\.work-scene\{position:sticky/);
-  assert.match(work, /compact \|\| disabled \? 'work-linear' : ''/);
-  assert.match(work, /scene-title-line/);
-  assert.match(work, /clipPath: 'inset\(0% 0% 0% 0% round 4px\)'/);
-  assert.match(work, /yPercent: -3, scale: 1/);
-  assert.match(work, /scale: \.96, opacity: \.35/);
-  assert.match(work, /scrub: \.65/);
+test('project chapters use document flow without overlapping scroll transforms', () => {
+  assert.match(css, /\.work-scene\{position:relative;top:auto;min-height:0;margin-bottom:0/);
+  assert.doesNotMatch(work, /ScrollTrigger|workSceneMetrics|scrub:|clipPath:|ResizeObserver/);
+  assert.match(work, /IntersectionObserver/);
+  assert.match(work, /observer.unobserve/);
+  assert.match(work, /work-project-pagination/);
+  assert.match(work, /previousProject/);
   assert.match(work, /work-flow-marker/);
-  assert.match(work, /ResizeObserver/);
-  assert.match(work, /document.fonts.ready/);
-  assert.match(work, /context.revert\(\)/);
+  // Progressive enhancement: no hidden content before the observer executes.
+  assert.doesNotMatch(css, /work-art[^{}]*\{[^}]*opacity:0[;}]/);
 });
 
-test('mobile still has a scroll crop and a touch-operable visual; reduced motion is readable', () => {
-  assert.ok(work.indexOf("clipPath: 'inset(0%") < work.indexOf('if (compact) return;'));
+test('mobile visuals remain touch operable and reduced motion avoids entrances', () => {
   assert.match(work, /onClick=\{\(\) => setExpanded/);
-  assert.match(css, /work-still \.scene-art-crop\{clip-path:none!important\}/);
   assert.match(css, /prefers-reduced-motion:reduce/);
+  assert.match(css, /\.work-art-entered\{animation:none\}/);
+  assert.match(css, /work-still \.work-art-entered\{animation:none\}/);
 });
 
 test('Introduction is merged without losing its anchor or internship facts', () => {
