@@ -135,13 +135,15 @@ export default function SelectedWork({ projects, compact, disabled }: { projects
         // Normal-flow markers keep trigger positions stable when sticky scenes
         // overlap, on reverse scrolling and after a font/viewport refresh.
         const trigger = scene.previousElementSibling as HTMLElement;
-        const art = scene.querySelector<HTMLElement>('.scene-art')!;
+        const art = scene.querySelector<HTMLElement>('.scene-art');
+        const crop = scene.querySelector<HTMLElement>('.scene-art-crop');
         const lines = scene.querySelectorAll('.scene-title-line');
         gsap.fromTo(lines, { yPercent: 110, rotate: compact ? 0 : 3 }, {
           yPercent: 0, rotate: 0, stagger: .09, duration: compact ? .65 : 1.05, ease: MOTION.ease.reveal,
           scrollTrigger: { trigger, start: 'top 88%', toggleActions: 'play none none reverse', invalidateOnRefresh: true }
         });
-        gsap.fromTo(scene.querySelector('.scene-art-crop'),
+        // The Workflow chapter switch can replace the diagram with reading content.
+        if (art && crop) gsap.fromTo(crop,
           { clipPath: compact ? 'inset(4% 3% 4% 3% round 4px)' : 'inset(10% 7% 8% 7% round 4px)' },
           { clipPath: 'inset(0% 0% 0% 0% round 4px)', ease: 'none', scrollTrigger: { trigger, start: () => `top+=${offsetInScene(art, scene)} bottom`, end: () => `top+=${offsetInScene(art, scene)} 28%`, scrub: compact ? true : .75, invalidateOnRefresh: true } });
         if (compact) return;
