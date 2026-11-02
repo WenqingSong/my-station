@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Agent Workflow 技术文档：Git 证据绑定、只读 Gate、路线一致性与源码分发升级。">
+  <title>Agent Workflow · Framework</title>
+  <script>try{let t=localStorage.getItem('workflow-reader-theme');if(t)document.documentElement.dataset.theme=t}catch{}</script>
+  <link rel="icon" type="image/svg+xml" href="assets/framework-symbol.svg">
+  <link rel="stylesheet" href="styles.css">
+  <script src="content.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#article">跳至正文</a>
+  <header class="topbar">
+    <a class="brand" href="#overview" aria-label="Framework 文档首页"><span class="brand-symbol" aria-hidden="true"></span><span>FRAMEWORK</span></a>
+    <a class="portfolio-return" href="/?from=workflow-docs#work-backend"><span aria-hidden="true">←</span> 返回个人网站</a>
+    <div class="repo-name"><span>framework-station</span><i>/</i><strong>agent-workflow</strong></div>
+    <button id="search-open" class="search-trigger"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><span>搜索文档</span><kbd>⌘ K</kbd></button>
+    <div class="top-actions"><button id="theme-toggle" class="icon-button" aria-label="切换配色"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg></button><a class="repo-link" href="https://cnb.cool/framework-station/agent-workflow" target="_blank" rel="noopener noreferrer">查看仓库 <span aria-hidden="true">↗</span></a></div>
+  </header>
+  <div class="mobile-bar"><button id="menu-toggle" aria-expanded="false" aria-controls="sidebar">☰ <span>文档目录</span></button><span id="mobile-title">项目概述</span></div>
+  <button id="menu-backdrop" hidden aria-label="关闭文档目录"></button>
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="文档导航"><div class="repository"><span class="repository-icon" aria-hidden="true">⌘</span><div><strong>Agent Workflow</strong><small>技术文档</small></div><span class="version">{{VERSION}}</span></div><nav id="document-nav"></nav><div class="sidebar-foot"><span class="snapshot-dot"></span><span>源码快照 <code>{{SHORT_COMMIT}}</code></span><a href="docs/01-overview.md" id="md-file" download aria-label="下载当前文档 Markdown">MD ↓</a></div></aside>
+    <main id="main"><div class="document-topline"><span id="breadcrumb">项目概述</span><div><button id="copy-md" title="复制当前文档 Markdown">复制 Markdown</button><span class="topline-separator">·</span><span>基于 <code>{{SHORT_COMMIT}}</code></span></div></div><article id="article" tabindex="-1"><!--INITIAL_ARTICLE--></article><nav id="page-pagination" aria-label="相邻文档"></nav><footer class="document-footer"><a href="/?from=workflow-docs#work-backend">← 返回个人网站 · Agent Workflow</a><span>源码版本 {{VERSION}} · 固定快照阅读</span></footer></main>
+    <aside class="outline"><div class="outline-sticky"><p class="aside-heading">本页目录</p><nav id="toc" aria-label="本页目录"></nav><div class="source-list"><p class="aside-heading">相关源码 <span id="source-count"></span></p><div id="related-sources"></div><p class="source-hint">点击文件查看代码节选</p></div><a class="snapshot-link" href="https://cnb.cool/framework-station/agent-workflow/-/commit/{{COMMIT}}" target="_blank" rel="noopener noreferrer">源码快照 <code>{{SHORT_COMMIT}}</code> ↗</a></div></aside>
+  </div>
+  <dialog id="search-dialog" aria-labelledby="search-title"><div class="search-box"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><label for="search-input" id="search-title" class="sr-only">搜索 Agent Workflow 文档</label><input id="search-input" type="search" placeholder="搜索证据、Gate、升级…" autocomplete="off"><button class="dialog-close" aria-label="关闭搜索">Esc</button></div><div id="search-results"></div><div class="search-footer">搜索当前 {{PAGE_COUNT}} 篇文档 <span>↑ ↓ 选择　↵ 打开</span></div></dialog>
+  <dialog id="source-dialog" aria-labelledby="source-title"><header><div><span class="aside-heading">源码节选 · {{SHORT_COMMIT}}</span><h2 id="source-title"></h2></div><button class="dialog-close" aria-label="关闭源码">✕</button></header><p id="source-path"></p><pre id="source-code"></pre><footer><span>固定提交的实际代码节选</span><a id="source-external" target="_blank" rel="noopener noreferrer">在仓库中查看 ↗</a></footer></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

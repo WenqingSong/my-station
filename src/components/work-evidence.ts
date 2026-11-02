@@ -18,11 +18,11 @@ export const workEvidence: Record<string, {
     repo: 'https://cnb.cool/framework-station/agent-workflow',
     problem: '上一个会话说“已审查”，下一个会话却拿到了改过的代码。任务文件、代码提交和审查结论，需要能互相对得上。',
     decision: '把交接与审查绑定到具体 Git Commit，用 Go 校验器检查。代码变了，旧的审查结论不能自动沿用；最终是否合并，仍由人决定。',
-    evidence: '流程文档记录角色与交接约定，Git 集成测试检查提交变化后审查结论是否仍然有效。',
+    evidence: '3.4.0 以 Task 支撑独立会话和四字段交接；真实 Git / Gate 测试覆盖失败记录恢复，以及任务定义更新后的审查失效。',
     boundary: '开发协作流程与校验工具，不是自动运行 Agent 的调度平台。',
     links: [
-      { label: '协作流程设计', url: 'https://cnb.cool/framework-station/agent-workflow/-/blob/7727e0a64f47bc33b6f042f27421e1889224e7f3/docs/design/agent-workflow.md' },
-      { label: 'Git 集成测试源码', url: 'https://cnb.cool/framework-station/agent-workflow/-/blob/7727e0a64f47bc33b6f042f27421e1889224e7f3/.agent/engine/internal/workflow/git_integration_test.go' }
+      { label: '协作流程设计', url: 'https://cnb.cool/framework-station/agent-workflow/-/blob/263194ba83e72c1fc67f177fb22e9bffeff0780e/docs/design/agent-workflow.md' },
+      { label: 'Git 集成测试源码', url: 'https://cnb.cool/framework-station/agent-workflow/-/blob/263194ba83e72c1fc67f177fb22e9bffeff0780e/.agent/engine/internal/workflow/git_integration_test.go' }
     ]
   },
   matching: {

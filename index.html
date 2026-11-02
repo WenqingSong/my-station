@@ -6,7 +6,15 @@
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#f1efe9" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#14171c" media="(prefers-color-scheme: dark)" />
+    <script>
+      // A document return lands at the project, without replaying the opening.
+      if (new URLSearchParams(location.search).get('from') === 'workflow-docs' && location.hash === '#work-backend') {
+        document.documentElement.dataset.projectReturn = 'workflow';
+        document.documentElement.classList.remove('brand-loading');
+      }
+    </script>
     <style>
+      html[data-project-return="workflow"] .brand-intro{display:none}
       html.brand-loading,html.brand-loading body{overflow:hidden}
       .brand-intro{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:#f1efe9;color:#14171c;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
       .brand-intro-center{display:grid;justify-items:center;gap:22px}
@@ -28,7 +36,7 @@
     <link rel="preload" href="/fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/noto-sans-sc.woff2" as="font" type="font/woff2" crossorigin />
-    <meta name="description" content="我是 Arthur，2027 届软件工程本科生，主要做 Go 后端。这里记录 SurgeCart、Agent Workflow、Offer 捕手，以及实习、学习和代码之外的生活。" />
+    <meta name="description" content="我是 Arthur，2027 届软件工程本科生，主要做 Go 后端。这里记录 Agent Workflow、SurgeCart、Offer 捕手，以及实习、学习和代码之外的生活。" />
     <title>Arthur — Go Backend & Cloud Computing</title>
     <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
   </head>

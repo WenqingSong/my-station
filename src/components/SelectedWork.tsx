@@ -5,6 +5,7 @@ import { MOTION } from '../motion';
 import { workEvidence } from './work-evidence';
 import { workSceneMetrics } from './work-scene-metrics';
 import './selected-work.css';
+import WorkflowFeature from './WorkflowFeature';
 
 type Project = {
   id: string; index: string; title: string; subtitle: string; category: string;
@@ -29,13 +30,6 @@ function ProjectVisual({ kind }: { kind: string }) {
     <div className="delivery-slip slip-front"><span>01 / REDIS LUA</span><strong>Accepted.<br />Not sold.</strong><div className="slip-divider" /><p>准入 ≠ 下单成功</p><div className="slip-bars" /></div>
     <span className="visual-coordinate">A → B → C</span>
   </div>;
-  if (kind === 'backend') return <div className="backend-system">
-    <div className="service-axis" />
-    {['TASK', 'REVIEW', 'COMMIT'].map((label, i) => <div className={`service-plane plane-${i}`} key={label}>
-      <span>0{i + 1}</span><strong>{label}</strong><div className="plane-grid" /><i />
-    </div>)}
-    <span className="visual-coordinate">TASK / REVIEW / GIT COMMIT</span>
-  </div>;
   return <div className="matching-system">
     <div className="match-orbit" /><div className="match-links"><i /><i /><i /><i /><i /></div>
     <div className="match-document document-a"><span>01 / RESUME</span><strong>Skills.<br />Projects.<br />Experience.</strong><div className="document-lines"><i /><i /><i /><i /></div></div>
@@ -44,7 +38,7 @@ function ProjectVisual({ kind }: { kind: string }) {
   </div>;
 }
 
-function WorkScene({ project, compact, disabled }: { project: Project; compact: boolean; disabled: boolean }) {
+function WorkScene({ project, nextProject, compact, disabled }: { project: Project; nextProject?: Project; compact: boolean; disabled: boolean }) {
   const evidence = workEvidence[project.id];
   const [expanded, setExpanded] = useState(false);
   const visualRef = useRef<HTMLDivElement>(null);
@@ -104,7 +98,7 @@ function WorkScene({ project, compact, disabled }: { project: Project; compact: 
         <div><h4><span>01 /</span> 关键决策</h4><p>{evidence.decision}</p></div>
         <div><h4><span>02 /</span> 实现依据</h4><p>{evidence.evidence}</p><div className="work-evidence-links">{evidence.links.map(link => <a href={link.url} key={link.url} target="_blank" rel="noopener noreferrer" aria-label={`${project.title}：${link.label}，新窗口打开`}>{link.label}<span aria-hidden="true">↗</span></a>)}</div></div>
       </div>
-      <div className="scene-bottomline"><div><span>SCOPE / 当前边界</span><p>{evidence.boundary}</p></div><div><span>TECHNOLOGY / 技术方向</span><p>{project.stack}</p></div><a href={project.id === 'matching' ? '#skills' : `#work-${project.id === 'delivery' ? 'backend' : 'matching'}`} aria-label={project.id === 'matching' ? '继续阅读技术能力' : `下一个项目：${project.id === 'delivery' ? 'Agent Workflow' : 'Offer 捕手'}`}>{project.id === 'matching' ? 'The foundation' : 'Next project'} <span aria-hidden="true">↓</span></a></div>
+      <div className="scene-bottomline"><div><span>SCOPE / 当前边界</span><p>{evidence.boundary}</p></div><div><span>TECHNOLOGY / 技术方向</span><p>{project.stack}</p></div><a href={nextProject ? `#work-${nextProject.id}` : '#skills'} aria-label={nextProject ? `下一个项目：${nextProject.title}` : '继续阅读技术能力'}>{nextProject ? 'Next project' : 'The foundation'} <span aria-hidden="true">↓</span></a></div>
     </div>
   </article>;
 }
@@ -151,7 +145,7 @@ export default function SelectedWork({ projects, compact, disabled }: { projects
           { clipPath: compact ? 'inset(4% 3% 4% 3% round 4px)' : 'inset(10% 7% 8% 7% round 4px)' },
           { clipPath: 'inset(0% 0% 0% 0% round 4px)', ease: 'none', scrollTrigger: { trigger, start: () => `top+=${offsetInScene(art, scene)} bottom`, end: () => `top+=${offsetInScene(art, scene)} 28%`, scrub: compact ? true : .75, invalidateOnRefresh: true } });
         if (compact) return;
-        gsap.fromTo(scene.querySelector('.scene-art-parallax'), { yPercent: 9, scale: 1.06 }, {
+        if (scene.id !== 'work-backend') gsap.fromTo(scene.querySelector('.scene-art-parallax'), { yPercent: 9, scale: 1.06 }, {
           yPercent: -3, scale: 1, ease: 'none', scrollTrigger: { trigger, start: 'top bottom', end: () => `+=${scene.offsetHeight + innerHeight}`, scrub: .8, invalidateOnRefresh: true }
         });
         if (scenes[index + 1]) {
@@ -168,8 +162,8 @@ export default function SelectedWork({ projects, compact, disabled }: { projects
   }, [compact, disabled]);
   return <section className={`selected-work ${compact || disabled ? 'work-linear' : ''} ${disabled ? 'work-still' : ''}`} id="work" ref={rootRef} aria-labelledby="work-heading">
     <span id="intro" className="work-legacy-anchor" aria-hidden="true" />
-    <div className="work-prologue section-shell"><p className="eyebrow">SELECTED WORK / 01—03</p><h2 id="work-heading">Selected projects<span>.</span></h2><div><p>交易中的重复请求、Agent 的任务交接，<br />以及自己的求职需求。三个项目，三种具体问题。</p><span>SCROLL TO EXPLORE ↓</span></div></div>
-    <div className="work-scenes">{projects.map(project => <Fragment key={project.id}><div className="work-flow-marker" aria-hidden="true" /><WorkScene project={project} disabled={disabled} compact={compact} /></Fragment>)}</div>
+    <div className="work-prologue section-shell"><p className="eyebrow">SELECTED WORK / 01—03</p><h2 id="work-heading">Selected projects<span>.</span></h2><div><p>从 Agent 的工程协作，到交易一致性，<br />再到自己的求职工具。记录实现，也记录约束。</p><span>SCROLL TO EXPLORE ↓</span></div></div>
+    <div className="work-scenes">{projects.map((project, index) => <Fragment key={project.id}><div className="work-flow-marker" aria-hidden="true" />{project.id === 'backend' ? <WorkflowFeature disabled={disabled} compact={compact} /> : <WorkScene project={project} nextProject={projects[index + 1]} disabled={disabled} compact={compact} />}</Fragment>)}</div>
     <div className="work-context section-shell"><p>这些项目由我主导方案、推进与验收，使用 AI Agent 协作开发。链接指向具体版本的实现与测试源码，不代表生产环境验证。</p><p><span>团队经历 / 2026.07—08</span>在杭州智航星辰人工智能科技有限公司做 Go 后端实习，参与企业课程平台开发，跟进 AI 客服系统的问题定位、修复和联调。</p></div>
   </section>;
 }

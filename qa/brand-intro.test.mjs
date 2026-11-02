@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 const script = readFileSync(new URL('../public/brand/intro.js', import.meta.url), 'utf8');
-function harness({ animated = true, reduced = true, time = 5400 } = {}) {
+function harness({ animated = true, reduced = true, time = 5400, projectReturn = false } = {}) {
   const timers = new Map();
   const button = new EventTarget(); button.hidden = true; button.textContent = '先进入网站';
   const status = { textContent: '' };
@@ -14,7 +14,7 @@ function harness({ animated = true, reduced = true, time = 5400 } = {}) {
   const player = { currentTime: time, finish: options => { finishOptions = options; finishCount++; return new Promise(resolve => { release = resolve; }); }, cancel: () => { cancelCount++; } };
   const removedClasses = [], events = [];
   const context = vm.createContext({
-    document: { hidden: true, getElementById: id => ({ 'brand-intro': overlay, root, 'brand-intro-status': status })[id], documentElement: { classList: { remove: name => removedClasses.push(name) } } },
+    document: { hidden: true, getElementById: id => ({ 'brand-intro': overlay, root, 'brand-intro-status': status })[id], documentElement: { dataset: { projectReturn: projectReturn ? 'workflow' : undefined }, classList: { remove: name => removedClasses.push(name) } } },
     FrameworkMotion: animated ? { duration: 5400, create: () => player } : undefined,
     matchMedia: () => ({ matches: reduced, addEventListener() {}, removeEventListener() {} }),
     setTimeout: (fn, ms) => { timers.set(ms, fn); return ms; }, clearTimeout: id => timers.delete(id),
@@ -142,4 +142,14 @@ test('a failed animation runtime still releases the static brand fallback', asyn
   await h.context.FrameworkIntro.finish();
   assert.equal(h.overlay.removed, true);
   assert.equal(h.root.inert, false);
+});
+
+
+test('returning from the project reader releases the site without preparing film or replaying the brand', () => {
+  const h = harness({ projectReturn: true });
+  assert.equal(h.overlay.removed, true);
+  assert.equal(h.root.inert, false);
+  assert.equal(h.context.FrameworkIntro, undefined);
+  assert.equal(h.timers.size, 0);
+  assert.equal(h.counts().finishCount, 0);
 });

@@ -10,13 +10,30 @@ import FilmOpening from './components/film/FilmOpening';
 import { useFilmPortal } from './components/film/useFilmPortal';
 import { useCompactMotion, useMotionInfrastructure } from './motion';
 import { prepareBrandEntrance } from './brand-readiness';
+import { isWorkflowDocsReturn } from './project-return';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const projects = [
   {
-    id: 'delivery',
+    id: 'backend',
     index: '01',
+    title: 'Agent Workflow',
+    subtitle: '基于 Git 证据的工程协作框架',
+    preview: {
+      note: '把交接与审查关联到具体提交。',
+      steps: [['任务文件', '交接'], ['Git Commit', '绑定'], ['Go 校验器', '检查']]
+    },
+    category: '个人项目 · Developer Tooling',
+    label: '任务与审查',
+    heading: <>代码变了，<br />审查结论还有效吗？</>,
+    description: '用 AI Agent 开发时，我发现任务交接、代码修改和审查结论容易对不上。于是设计了多角色协作流程，并开发 Go 校验器，把任务状态和审查结果关联到具体 Git Commit，在交接前检查是否发生变化。',
+    focus: '一次审查通过之后，怎样发现后续提交已经改变了被审查的代码？',
+    stack: 'Go / Git / Python / 自动化测试'
+  },
+  {
+    id: 'delivery',
+    index: '02',
     title: 'SurgeCart',
     subtitle: '电商交易与秒杀系统',
     preview: {
@@ -29,22 +46,6 @@ const projects = [
     description: '从普通订单做起，我后来花了更多时间处理重复下单、库存扣减和失败恢复。秒杀先由 Redis Lua 控制准入，再通过 MySQL 请求表排队、异步落单。我用并发测试和库存对账检查最终结果。',
     focus: '为什么选 MySQL 请求表，而不是直接引入 Kafka？支付目前使用 Mock，不接真实交易。',
     stack: 'Go / GoFrame / MySQL / Redis / Prometheus'
-  },
-  {
-    id: 'backend',
-    index: '02',
-    title: 'Agent Workflow',
-    subtitle: '基于 Git 的多 Agent 协作工具',
-    preview: {
-      note: '把交接与审查关联到具体提交。',
-      steps: [['任务文件', '交接'], ['Git Commit', '绑定'], ['Go 校验器', '检查']]
-    },
-    category: '个人项目 · Developer Tooling',
-    label: '任务与审查',
-    heading: <>代码变了，<br />审查结论还有效吗？</>,
-    description: '用 AI Agent 开发时，我发现任务交接、代码修改和审查结论容易对不上。于是设计了多角色协作流程，并开发 Go 校验器，把任务状态和审查结果关联到具体 Git Commit，在交接前检查是否发生变化。',
-    focus: '一次审查通过之后，怎样发现后续提交已经改变了被审查的代码？',
-    stack: 'Go / Git / 自动化测试'
   },
   {
     id: 'matching',
@@ -105,6 +106,7 @@ function useReducedMotion() {
 }
 
 function App() {
+  const [returningToProject] = useState(() => isWorkflowDocsReturn(window.location));
   const [brandLoading, setBrandLoading] = useState(() => document.documentElement.classList.contains('brand-loading'));
   const reviewStill = new URLSearchParams(location.search).get('hero-review') === 'still';
   const reduced = useReducedMotion();
@@ -138,7 +140,7 @@ function App() {
 
   const filmRef = useRef<HTMLElement>(null);
   const siteRef = useRef<HTMLDivElement>(null);
-  const { phase, enterHero, returnToFilm } = useFilmPortal(filmRef, siteRef, reduced || reviewStill, handleOpeningComplete);
+  const { phase, enterHero, returnToFilm } = useFilmPortal(filmRef, siteRef, reduced || reviewStill, handleOpeningComplete, returningToProject ? 'hero' : 'film');
 
   useEffect(() => {
     const controller = new AbortController();
@@ -161,6 +163,13 @@ function App() {
   }, []);
 
   useMotionInfrastructure({ disabled, compact });
+
+  useEffect(() => {
+    if (!returningToProject) return;
+    const url = new URL(location.href);
+    url.searchParams.delete('from');
+    history.replaceState(history.state, '', url.pathname + url.search + url.hash);
+  }, [returningToProject]);
 
   useEffect(() => setMotionPaused(reduced), [reduced]);
   useEffect(() => {

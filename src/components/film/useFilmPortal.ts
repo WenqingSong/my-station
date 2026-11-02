@@ -7,9 +7,10 @@ export function useFilmPortal(
   heroRef: RefObject<HTMLDivElement>,
   reduced: boolean,
   onEntered: () => void,
+  initialDestination: PortalDestination = 'film',
 ) {
-  const [phase, setPhase] = useState<PortalPhase>('film');
-  const phaseRef = useRef<PortalPhase>('film');
+  const [phase, setPhase] = useState<PortalPhase>(initialDestination);
+  const phaseRef = useRef<PortalPhase>(initialDestination);
   const requestRef = useRef<(destination: PortalDestination) => void>(() => {});
   const onEnteredRef = useRef(onEntered);
   onEnteredRef.current = onEntered;
