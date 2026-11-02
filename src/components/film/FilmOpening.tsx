@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { portraitFocalPoint } from './crop';
 import './film.css';
+import BrandImage from '../BrandImage';
 
 const filmUrl = '/media/think-different.mp4';
 const posterUrl = '/media/think-different-poster.jpg';
@@ -19,6 +20,7 @@ export default function FilmOpening({ stageRef, active, reduced, enterHero }: Pr
   const [paused, setPaused] = useState(true);
   const [muted, setMuted] = useState(true);
   const [ready, setReady] = useState(false);
+  const [playable, setPlayable] = useState(false);
   const [failed, setFailed] = useState(false);
   const [pointerInside, setPointerInside] = useState(false);
 
@@ -72,14 +74,14 @@ export default function FilmOpening({ stageRef, active, reduced, enterHero }: Pr
     let mounted = true;
     const sync = () => {
       const canPlay = active || stageRef.current?.dataset.filmStarting === 'true';
-      if (!canPlay || document.hidden || manuallyPaused.current || (reduced && !explicitlyPlaying.current)) video.pause();
+      if (!playable || !canPlay || document.hidden || manuallyPaused.current || (reduced && !explicitlyPlaying.current)) video.pause();
       else void video.play().catch(() => { if (mounted) setPaused(true); });
     };
     if (active && stageRef.current) delete stageRef.current.dataset.filmStarting;
     document.addEventListener('visibilitychange', sync);
     sync();
     return () => { mounted = false; document.removeEventListener('visibilitychange', sync); };
-  }, [reduced, active]);
+  }, [reduced, active, playable]);
   useEffect(() => {
     const video = videoRef.current;
     return () => video?.pause();
@@ -106,10 +108,11 @@ export default function FilmOpening({ stageRef, active, reduced, enterHero }: Pr
     data-pointer-inside={pointerInside} aria-label="个人灵感影片，默认静音循环播放"
     onPointerMove={event => { if (event.pointerType === 'mouse') setPointerInside(true); }}
     onPointerLeave={() => setPointerInside(false)}>
-    <img className="film-poster" src={posterUrl} alt="" aria-hidden="true" />
+    <BrandImage className="film-poster" src={posterUrl} alt="" aria-hidden="true" />
     <video ref={videoRef} className="film-video" src={filmUrl} poster={posterUrl}
       muted={muted} playsInline loop preload={reduced ? 'metadata' : 'auto'} aria-hidden="true" tabIndex={-1}
-      onSeeked={() => setReady(true)}
+      onCanPlay={() => setPlayable(true)}
+      onSeeked={event => { if (event.currentTarget.readyState >= 2) setReady(true); }}
       onPlaying={event => { if (event.currentTarget.currentTime >= 1.674) setReady(true); setPaused(false); }}
       onPause={() => setPaused(true)}
       onVolumeChange={event => setMuted(event.currentTarget.muted)}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import './workflow-feature.css';
+import BrandImage from './BrandImage';
 import { collaboration, reviewFrames } from './workflow-story';
 import { principles, workflowSource } from './workflow-principles';
 
@@ -68,7 +69,7 @@ function DesignThinking() {
     <div className="wf-panel-heading"><div><span className="wf-overline">THE THINKING BEHIND IT</span><h4>工程经验，成为协作的约束。</h4></div></div>
     <div className="wf-author-switch" role="group" aria-label="选择思想来源">{principles.map((item, index) => <button type="button" key={item.name} onClick={() => { setAuthor(index); setSelected(0); }} aria-pressed={author === index}>{item.short}<span>{index === 0 ? '软件工程' : 'Agent 工程'}</span></button>)}</div>
     <div className="wf-philosophy-layout">
-      <figure className={`wf-person wf-person-${author}`} key={person.name}><div className="wf-person-image"><img src={person.image} alt={person.imageAlt} width={author === 0 ? 960 : 256} height={author === 0 ? 756 : 256} loading="eager" /></div><figcaption><span className="wf-overline">{person.category}</span><h5>{person.name}</h5><p>{person.intro}</p><a href={source} target="_blank" rel="noopener noreferrer">阅读参考原文 <span aria-hidden="true">↗</span></a></figcaption></figure>
+      <figure className={`wf-person wf-person-${author}`} key={person.name}><div className="wf-person-image"><BrandImage src={person.image} alt={person.imageAlt} width={author === 0 ? 960 : 256} height={author === 0 ? 756 : 256} loading="eager" /></div><figcaption><span className="wf-overline">{person.category}</span><h5>{person.name}</h5><p>{person.intro}</p><a href={source} target="_blank" rel="noopener noreferrer">阅读参考原文 <span aria-hidden="true">↗</span></a></figcaption></figure>
       <div className="wf-principle-detail"><div className="wf-idea-tabs" role="group" aria-label="选择设计原则">{person.ideas.map((item, index) => <button type="button" key={item.label} onClick={() => setSelected(index)} aria-pressed={selected === index}>{item.label}</button>)}</div><div className="wf-idea-copy" key={`${author}-${selected}`}><h5>{idea.title}</h5><p className="wf-reference"><span>我参考的原则</span>{idea.reference}</p><p className="wf-application"><span>在这个项目里，我的取舍</span>{idea.application}</p><div className="wf-principle-diagram" aria-label="设计关系">{idea.diagram.map((item, index) => <span key={item}>{index > 0 && <i aria-hidden="true">→</i>}<b>{item}</b></span>)}</div><div className="wf-implementation"><p>{idea.implementation}</p><a href={`${workflowSource}${idea.file}#L${idea.line}`} target="_blank" rel="noopener noreferrer">查看实现依据 <span aria-hidden="true">↗</span><code>{idea.file.split('/').pop()}</code></a></div><a className="wf-article-source" href={source} target="_blank" rel="noopener noreferrer">参考：{sourceLabel} ↗</a></div></div>
     </div>
     <p className="wf-panel-note">设计参考，不代表作者或机构参与或背书。角色写入范围属于协议约束，校验器不验证 Agent 身份，也不提供操作系统层的权限隔离。</p>

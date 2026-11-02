@@ -3,6 +3,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { MOTION } from '../motion';
 import './about-editorial.css';
+import { BrandLoading } from './BrandImage';
 
 export default function AboutEditorial({ disabled, compact }: { disabled: boolean; compact: boolean }) {
   const rootRef = useRef<HTMLElement>(null);
@@ -63,8 +64,10 @@ export default function AboutEditorial({ disabled, compact }: { disabled: boolea
           <img ref={imageRef} src="/arthur-editorial-960.jpg"
             srcSet="/arthur-editorial-640.jpg 640w, /arthur-editorial-960.jpg 960w, /arthur-editorial-1440.jpg 1440w, /arthur-editorial-2160.jpg 2160w"
             sizes="(max-width: 620px) 72vw, (max-width: 900px) 42vw, (min-width: 1600px) 440px, 32vw"
-            width="960" height="1440" loading="lazy" decoding="async"
+            width="960" height="1440" loading="eager" decoding="async"
+            style={{ opacity: imageState === 'ready' ? 1 : 0 }}
             alt="Arthur 身着深色西装，站在深蓝色背景前" />
+        {imageState === 'loading' && <BrandLoading />}
         </picture>
         {imageState === 'error' && <span className="portrait-load-status" role="status">照片暂未载入</span>}
         <figcaption><span>Arthur</span><span>宋文清</span></figcaption>

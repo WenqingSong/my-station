@@ -75,10 +75,9 @@ test('animation withdrawal waits for actual film preparation', async () => {
   h.release(); await pending;
 });
 
-test('the slow-network action appears only after the application can accept it', () => {
+test('the entry action is available immediately and stays visible after mount', () => {
   const h = harness();
-  h.timers.get(8000)();
-  assert.equal(h.button.hidden, true);
+  assert.equal(h.button.hidden, false);
   h.context.FrameworkIntro.attachSite();
   assert.equal(h.button.hidden, false);
   assert.equal(h.button.textContent, '先进入网站');
@@ -86,9 +85,9 @@ test('the slow-network action appears only after the application can accept it',
   assert.equal(h.counts().finishCount, 0);
 });
 
-test('the slow-network action does not interrupt a normal fast entrance', async () => {
+test('the visible action does not automatically bypass a normal entrance', async () => {
   const h = harness(); h.context.FrameworkIntro.attachSite();
-  assert.equal(h.button.hidden, true);
+  assert.equal(h.button.hidden, false);
   const pending = h.context.FrameworkIntro.finish();
   await new Promise(setImmediate); h.release(); await pending;
   assert.equal(h.events[0].type, 'brand:ready');
@@ -152,4 +151,19 @@ test('returning from the project reader releases the site without preparing film
   assert.equal(h.context.FrameworkIntro, undefined);
   assert.equal(h.timers.size, 0);
   assert.equal(h.counts().finishCount, 0);
+});
+
+
+test('explicit entry interrupts the first cycle and can be queued before app mount', async () => {
+  const h = harness({ reduced: false, time: 0 });
+  assert.equal(h.button.hidden, false);
+  h.button.dispatchEvent(new Event('click'));
+  assert.equal(h.counts().finishCount, 0);
+  h.context.FrameworkIntro.attachSite();
+  await new Promise(setImmediate);
+  assert.equal(h.counts().finishCount, 1);
+  assert.equal(h.events[0].type, 'brand:continue');
+  h.release(); await h.context.FrameworkIntro.finish();
+  assert.equal(h.overlay.removed, true);
+  assert.equal(h.timers.size, 0);
 });

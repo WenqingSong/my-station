@@ -10,8 +10,9 @@
   const button = overlay.querySelector('button');
   const status = document.getElementById('brand-intro-status');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  let player, finishing, resolveSkip;
-  let siteAvailable = false, slow = false, skipping = false, exiting = false;
+  let player, finishing, resolveSkip, cycleTimer;
+  button.hidden = false;
+  let siteAvailable = false, slow = false, skipping = false, exiting = false, pendingContinue = false;
   const skipRequested = new Promise(resolve => { resolveSkip = resolve; });
   try { player = globalThis.FrameworkMotion?.create(svg, { loop: true }); }
   catch { /* Keep the static official mark if the animation runtime is unavailable. */ }
@@ -20,8 +21,8 @@
   // Read the player's clock so a fast cache never cuts the first cycle short.
   const firstCycle = () => new Promise(resolve => {
     const check = () => {
-      if (!player || reduced.matches || player.currentTime >= (globalThis.FrameworkMotion.duration ?? 5400)) resolve();
-      else setTimeout(check, Math.max(16, (globalThis.FrameworkMotion.duration ?? 5400) - player.currentTime));
+      if (skipping || exiting || !player || reduced.matches || player.currentTime >= (globalThis.FrameworkMotion.duration ?? 5400)) resolve();
+      else cycleTimer = setTimeout(check, Math.max(16, (globalThis.FrameworkMotion.duration ?? 5400) - player.currentTime));
     };
     check();
   });
@@ -34,12 +35,12 @@
   async function finish(beforeReveal) {
     if (finishing) return finishing;
     finishing = (async () => {
-      await firstCycle();
+      await Promise.race([firstCycle(), skipRequested]);
       // Prepare real playback under the opaque cover, before withdrawing it.
       if (!skipping) await Promise.race([Promise.resolve().then(() => beforeReveal?.()), skipRequested]);
       exiting = true;
       button.disabled = true;
-      clearTimeout(slowTimer); clearTimeout(deadline);
+      clearTimeout(slowTimer); clearTimeout(deadline); clearTimeout(cycleTimer);
       if (player) await player.finish({ surface: overlay });
       else if (!reduced.matches && !document.hidden) {
         await overlay.animate(
@@ -68,11 +69,12 @@
   const slowTimer = setTimeout(showSlow, 8000);
   const deadline = setTimeout(showSlow, 15000);
   const continueToSite = () => {
-    if (!siteAvailable || skipping || exiting) return;
+    if (skipping || exiting) return;
+    if (!siteAvailable) { pendingContinue = true; button.disabled = true; status.textContent = '正在进入主页…'; return; }
     skipping = true;
     button.disabled = true;
     button.textContent = '正在进入…';
-    clearTimeout(slowTimer); clearTimeout(deadline);
+    clearTimeout(slowTimer); clearTimeout(deadline); clearTimeout(cycleTimer);
     // Resolve before aborting film preparation, so that its cancellation cannot
     // reject the handoff that the visitor has explicitly chosen to bypass.
     resolveSkip();
@@ -86,5 +88,5 @@
     player = globalThis.FrameworkMotion?.create(svg, { loop: true });
   };
   reduced.addEventListener('change', updateMotion);
-  globalThis.FrameworkIntro = { finish, fail, attachSite() { siteAvailable = true; if (slow) showSlow(); } };
+  globalThis.FrameworkIntro = { finish, fail, attachSite() { siteAvailable = true; if (pendingContinue) continueToSite(); else button.hidden = false; } };
 })();
