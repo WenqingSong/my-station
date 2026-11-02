@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import BrandViewer from './BrandViewer';
 
 type HeroProject = {
   id: string; index: string; title: string; subtitle: string;
@@ -10,6 +11,21 @@ type Props = {
 };
 
 export default function FirstHero({ projects, paused, motionDisabled, reduced, toggleMotion }: Props) {
+  const [brandOpen, setBrandOpen] = useState(false);
+  const [dark, setDark] = useState(() => document.documentElement.dataset.theme === 'dark');
+  useEffect(() => {
+    const update = () => setDark(document.documentElement.dataset.theme === 'dark');
+    window.addEventListener('site:theme', update);
+    return () => window.removeEventListener('site:theme', update);
+  }, []);
+  const toggleTheme = () => {
+    const theme = dark ? 'light' : 'dark';
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+    try { localStorage.setItem('arthur-theme', theme); } catch { /* Storage may be unavailable. */ }
+    window.dispatchEvent(new Event('site:theme'));
+  };
+  const fieldPaused = paused || brandOpen;
   const rootRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [activeId, setActiveId] = useState(projects[0].id);
@@ -24,7 +40,7 @@ export default function FirstHero({ projects, paused, motionDisabled, reduced, t
     let width = 0, height = 0, frame = 0;
     let onscreen = true, alive = true;
     let pointer = { x: -999, y: -999 };
-    const colorScheme = matchMedia('(prefers-color-scheme: dark)');
+
     const resize = () => {
       const rect = host.getBoundingClientRect();
       const dpr = Math.min(devicePixelRatio || 1, 2);
@@ -52,7 +68,7 @@ export default function FirstHero({ projects, paused, motionDisabled, reduced, t
       points.forEach(point => {
         const dx = point.ox - pointer.x, dy = point.oy - pointer.y;
         const distance = Math.hypot(dx, dy);
-        const force = paused ? 0 : Math.max(0, 1 - distance / 160) * point.quiet;
+        const force = fieldPaused ? 0 : Math.max(0, 1 - distance / 160) * point.quiet;
         const angle = Math.atan2(dy, dx);
         const tx = point.ox + Math.cos(angle) * force * 22;
         const ty = point.oy + Math.sin(angle) * force * 22;
@@ -61,15 +77,15 @@ export default function FirstHero({ projects, paused, motionDisabled, reduced, t
         point.y += (ty - point.y) * .12;
         point.radius += (radius - point.radius) * .12;
         if (Math.abs(tx - point.x) + Math.abs(ty - point.y) + Math.abs(radius - point.radius) > .025) moving = true;
-        ctx.fillStyle = (colorScheme.matches ? 'rgba(240,241,237,' : 'rgba(16,16,16,') + (.05 + point.quiet * .2) + ')';
+        ctx.fillStyle = (document.documentElement.dataset.theme === 'dark' ? 'rgba(240,241,237,' : 'rgba(16,16,16,') + (.05 + point.quiet * .2) + ')';
         ctx.beginPath(); ctx.arc(point.x, point.y, point.radius, 0, Math.PI * 2); ctx.fill();
       });
-      if (moving && onscreen && !paused && !document.hidden) frame = requestAnimationFrame(draw);
+      if (moving && onscreen && !fieldPaused && !document.hidden) frame = requestAnimationFrame(draw);
     };
     const wake = () => { if (!frame && onscreen && !document.hidden) frame = requestAnimationFrame(draw); };
     const leave = () => { pointer = { x: -999, y: -999 }; wake(); };
     const move = (event: PointerEvent) => {
-      if (paused || event.pointerType !== 'mouse') return;
+      if (fieldPaused || event.pointerType !== 'mouse') return;
       // Hovering a real link should never distort its visual target.
       if ((event.target as Element).closest('a, button, .first-project-explorer')) { leave(); return; }
       const rect = host.getBoundingClientRect();
@@ -96,16 +112,16 @@ export default function FirstHero({ projects, paused, motionDisabled, reduced, t
     host.addEventListener('pointermove', move); host.addEventListener('pointerleave', leave);
     document.addEventListener('visibilitychange', visibility);
     const themeChanged = () => { cancelAnimationFrame(frame); draw(); };
-    colorScheme.addEventListener('change', themeChanged);
+    window.addEventListener('site:theme', themeChanged);
     document.fonts.ready.then(() => { if (alive) { resize(); leave(); } });
     resize(); draw();
     return () => {
       alive = false; cancelAnimationFrame(frame); resizeObserver.disconnect(); intersection.disconnect(); openingObserver.disconnect();
       host.removeEventListener('pointermove', move); host.removeEventListener('pointerleave', leave);
       document.removeEventListener('visibilitychange', visibility);
-      colorScheme.removeEventListener('change', themeChanged);
+      window.removeEventListener('site:theme', themeChanged);
     };
-  }, [paused]);
+  }, [fieldPaused]);
 
   return <section className={`first-hero${paused ? ' first-hero-still' : ''}`} id="top" ref={rootRef} aria-label="Arthur，Go 后端开发" data-motion-section>
     <canvas className="first-hero-field" ref={canvasRef} aria-hidden="true" />
@@ -153,6 +169,11 @@ export default function FirstHero({ projects, paused, motionDisabled, reduced, t
       <a className="first-round-link" href="#work" data-field-quiet><span>查看作品<small>VIEW WORK</small></span><b aria-hidden="true">↘</b></a>
     </div>
     <span className="first-scroll-cue" aria-hidden="true">More below <span>↓</span></span>
+    <div className="first-hero-tools" data-field-quiet>
+      <button className="first-tool" type="button" onClick={toggleTheme} aria-label={dark ? '切换到浅色主题' : '切换到深色主题'}><span aria-hidden="true">{dark ? '☀' : '◐'}</span>{dark ? '浅色' : '深色'}</button>
+      <button className="first-tool first-brand-entry" type="button" onClick={() => setBrandOpen(true)} aria-haspopup="dialog"><span className="framework-mark" aria-hidden="true" />品牌放映<span aria-hidden="true">↗</span></button>
     <button className="first-motion-toggle" type="button" onClick={toggleMotion} aria-pressed={motionDisabled} disabled={reduced}>{reduced ? '系统减少动效' : motionDisabled ? '开启动效 ▷' : '暂停动效 Ⅱ'}</button>
+    </div>
+    {brandOpen && <BrandViewer onClose={() => setBrandOpen(false)} />}
   </section>;
 }

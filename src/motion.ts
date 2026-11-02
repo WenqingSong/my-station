@@ -66,7 +66,7 @@ export function useMotionInfrastructure({ disabled, compact }: MotionInfrastruct
     let locked = false;
     let initialHashFrame = 0;
     const syncLock = () => {
-      const next = document.hidden || document.documentElement.classList.contains('intro-locked') || document.documentElement.classList.contains('jobs-modal-open');
+      const next = document.hidden || document.documentElement.classList.contains('intro-locked') || document.documentElement.classList.contains('jobs-modal-open') || document.documentElement.classList.contains('brand-viewing');
       if (next === locked) return;
       locked = next;
       if (locked) lenis?.stop();

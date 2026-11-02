@@ -69,8 +69,9 @@ test('Introduction is merged without losing its anchor or internship facts', () 
 test('Hero and About keep their composition; Contact only adds the brand signature', () => {
   const hero = source('src/components/FirstHero.tsx');
   const originalHero = execFileSync('git', ['show', 'aa81238:src/components/FirstHero.tsx'], { encoding: 'utf8' });
-  // Canvas colors now follow system appearance; keep all existing Hero markup.
-  assert.equal(hero.slice(hero.indexOf('  return <section')), originalHero.slice(originalHero.indexOf('  return <section')));
+  // Appearance and brand controls extend the footer; preserve the original composition above it.
+  const composition = text => text.slice(text.indexOf('  return <section'), text.indexOf('    <span className="first-scroll-cue"'));
+  assert.equal(composition(hero), composition(originalHero));
   assert.equal(source('src/components/about-editorial.css'), execFileSync('git', ['show', 'aa81238:src/components/about-editorial.css'], { encoding: 'utf8' }));
   const originalApp = execFileSync('git', ['show', 'aa81238:src/App.tsx'], { encoding: 'utf8' });
   const contact = text => text.slice(text.indexOf('<section className="contact"'), text.indexOf('</main>'));

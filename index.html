@@ -6,6 +6,7 @@
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#f1efe9" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#14171c" media="(prefers-color-scheme: dark)" />
+    <script src="/brand/theme.js"></script>
     <script>
       // A document return lands at the project, without replaying the opening.
       if (new URLSearchParams(location.search).get('from') === 'workflow-docs' && location.hash === '#work-backend') {
@@ -27,7 +28,7 @@
       .brand-intro-skip[hidden]{display:none}
       .brand-intro-skip:focus-visible{outline:2px solid currentColor;outline-offset:5px}
       @keyframes brand-action-enter{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-      @media(prefers-color-scheme:dark){.brand-intro{background:#14171c;color:#fafbfc}.brand-intro-status{color:#a6a9ae}.brand-intro-skip{color:#fafbfc;border-color:#ffffff38}.brand-intro-skip:hover{background:#ffffff0c;border-color:#ffffff70}}
+      :root[data-theme="dark"] .brand-intro {background:#14171c;color:#fafbfc}:root[data-theme="dark"] .brand-intro-status {color:#a6a9ae}:root[data-theme="dark"] .brand-intro-skip {color:#fafbfc;border-color:#ffffff38}:root[data-theme="dark"] .brand-intro-skip:hover {background:#ffffff0c;border-color:#ffffff70}
       @media(prefers-reduced-motion:reduce){.brand-intro-skip{animation:none;transition:none}}
     </style>
     <script src="/brand/motion-v13.js" defer></script>
