@@ -1,2 +1,4 @@
 .media-brand-loading{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;color:var(--scene-ink,currentColor);z-index:1}.media-brand-loading svg{width:54px!important;height:54px!important;object-fit:contain!important;filter:none!important}.media-image-error{position:absolute;inset:0;display:grid;place-items:center;font-size:12px}.wf-person-image{position:relative}.wf-person-image img[data-media-ready]{transition:opacity .35s ease}.portrait-window> .media-brand-loading{color:#fafbfc}
 @media(prefers-reduced-motion:reduce){img[data-media-ready]{transition:none!important}}
+
+.media-brand-content{display:grid;justify-items:center;align-content:center;gap:8px}.media-brand-content small{font:8px/1.5 -apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:.18em;color:inherit;opacity:.7}
